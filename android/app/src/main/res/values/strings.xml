@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">VAJRA CryptoTrace</string>
+    <string name="title_activity_main">VAJRA CryptoTrace</string>
+    <string name="package_name">in.gov.vajra.cryptotrace</string>
+    <string name="custom_url_scheme">in.gov.vajra.cryptotrace</string>
+</resources>

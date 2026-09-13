@@ -1,0 +1,43 @@
+# Node & Build artifacts
+node_modules/
+dist/
+build/
+.cache/
+.vite/
+*.tsbuildinfo
+*-debug.log*
+logs/
+*.log
+.tmp-*
+
+# Environment & Secrets (Never commit production keys)
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Android & Gradle artifacts
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+*.iml
+.gradle/
+
+# Python & ML artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.ipynb_checkpoints/
+*.zip
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+.claude-replay.*
+/.plugins/
+/.opencode-skills/

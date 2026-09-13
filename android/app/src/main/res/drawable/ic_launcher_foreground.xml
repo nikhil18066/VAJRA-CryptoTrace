@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="220"
+    android:viewportHeight="260">
+    
+    <!-- Outer Shield Body -->
+    <path
+        android:pathData="M110,12 L192,44 L192,128 C192,192 126,234 110,246 C94,234 28,192 28,128 L28,44 Z"
+        android:strokeWidth="5"
+        android:strokeColor="#d4af37">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="110"
+                android:startY="12"
+                android:endX="110"
+                android:endY="246"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#0e1c38"/>
+                <item android:offset="1.0" android:color="#07101f"/>
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Inner Shield Ring -->
+    <path
+        android:pathData="M110,28 L172,54 L172,124 C172,174 122,208 110,218 C98,208 48,174 48,124 L48,54 Z"
+        android:strokeWidth="2.5"
+        android:strokeColor="#c5a017"/>
+
+    <!-- V Mark — Solid Gold -->
+    <path
+        android:pathData="M68,78 L110,174 L152,78 L130,78 L110,132 L90,78 Z"
+        android:fillColor="#d4af37"/>
+
+    <!-- Accent Line under V -->
+    <path
+        android:pathData="M86,188 L134,188"
+        android:strokeWidth="2.5"
+        android:strokeColor="#d4af37"/>
+</vector>

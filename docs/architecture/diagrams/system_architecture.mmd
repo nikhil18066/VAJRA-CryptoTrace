@@ -1,0 +1,46 @@
+graph TD
+    User([Investigator / LEA Officer]) -->|Interacts via Touch / Web UI| UI[React 19 + Tailwind v4 UI Layer]
+    
+    subgraph Client [Frontend Client Architecture - Capacitor / Web]
+        UI --> NavRouter[State-Based Screen Router<br/>src/App.tsx]
+        NavRouter --> Screens[Screens: Dashboard, Investigate, AnalysisProcess, CaseDetail, AIInvestigator, EvidenceBundle, CrossCaseView, Alerts]
+        Screens --> Stores[Client Reactive Stores<br/>analysisStore.ts & caseStore.ts]
+        Stores <--> LocalDB[(Browser LocalStorage<br/>vajra_cases_registry_v2)]
+    end
+
+    subgraph ForensicsEngine [Client-Side Forensics & Inference Engine]
+        Screens --> BCService[Blockchain Service<br/>src/services/blockchain.ts]
+        Screens --> FraudService[Fraud Scoring Engine<br/>src/services/fraudModel.ts]
+        Screens --> AIService[AI Copilot Service<br/>src/services/openrouter.ts]
+        
+        FraudService --> FeatureEng[15 Behavioral Features<br/>Gini, Fan-Out, Velocity, Structuring]
+        FraudService --> RuleScorer[Research-Calibrated Heuristic Scorer]
+        BCService --> GraphGen[Graph Topology Builder<br/>src/store/analysisStore.ts buildGraph]
+    end
+
+    subgraph ExternalAPIs [External Live Blockchain & Data APIs]
+        BCService -->|EVM Multi-Chain Balances & Txs| GoldRush[Covalent GoldRush API<br/>7 EVM Chains]
+        BCService -->|ETH Mainnet Txs| Etherscan[Etherscan v2 API]
+        BCService -->|Tron Accounts & TRC-20 Txs| TronGrid[TronGrid REST API]
+        BCService -->|BTC UTXO & In/Out Txs| Blockstream[Blockstream Esplora API]
+        BCService -->|SOL Balance & Signatures| SolanaRPC[Solana Public Mainnet RPC]
+        BCService -->|Live Token FX Conversion| CoinGecko[CoinGecko Price Cache API]
+    end
+
+    subgraph ExternalAI [External LLM Intelligence Cloud]
+        AIService -->|Streaming Chat & Reasoning| OpenRouter[OpenRouter Cloud Gateway<br/>DeepSeek R1 / Gemini 2.0 / Llama 3.3]
+    end
+
+    subgraph BackendML [Python ML Microservice - Optional Sidecar]
+        Screens -.->|HTTP POST /predict & /trace| FastAPI[FastAPI Microservice<br/>documents/.../app.py:8000]
+        FastAPI --> FeatureExtract[Feature Engineering<br/>24 Log-Transformed Features]
+        FeatureExtract --> Scaler[RobustScaler Artifact<br/>feature_scaler.joblib]
+        Scaler --> MLModel[LightGBM Classifier<br/>crypto_exchange_classifier.joblib]
+        FastAPI --> BFSTracer[Multi-Hop BFS Tracer<br/>realtime_tracer.py + first_order_df.csv]
+    end
+
+    subgraph ExportSecurity [Forensic Evidence & Output Pipeline]
+        Screens --> WebCrypto[Web Crypto Subtitle SHA-256 Integrity Sealer]
+        Screens --> PDFGen[Forensic Dossier PDF Print Engine]
+        Screens --> JSONGen[Court-Admissible Evidence Bundle JSON]
+    end

@@ -1,0 +1,43 @@
+sequenceDiagram
+    autonumber
+    actor Officer as Law Enforcement Officer
+    participant App as React App (App.tsx / Investigate.tsx)
+    participant Pipeline as Analysis Process (AnalysisProcess.tsx)
+    participant BC as Blockchain Service (blockchain.ts)
+    participant ExtAPI as Blockchain APIs (GoldRush/Etherscan/Tron/BTC)
+    participant ML as ML Service / Heuristic (fraudModel.ts / app.py)
+    participant AI as OpenRouter AI (openrouter.ts)
+    participant Store as Local Storage & CaseStore (caseStore.ts)
+    participant UI as Case Detail UI (CaseDetail.tsx)
+
+    Officer->>App: Input Wallet Address + Select Chain
+    App->>Pipeline: startAnalysis(wallet, chain, caseId)
+    Pipeline->>BC: detectChain(wallet) & analyzeWallet(wallet)
+    
+    par Parallel Ingestion
+        BC->>ExtAPI: Fetch Native & Token Balances (Covalent GoldRush / TronGrid / Blockstream / Solana)
+        BC->>ExtAPI: Fetch Historical Transactions (Logs & Transfers)
+        BC->>ExtAPI: Fetch Live Token Conversion FX Rates (CoinGecko)
+    end
+    
+    ExtAPI-->>BC: Raw Balances, Token Lists, Normalized Transactions
+    BC-->>Pipeline: WalletAnalysis Payload (Portfolio, 40+ Txs, Counterparties)
+    
+    Pipeline->>ML: scoreFraud(recentTxs, address) & callMLService(address)
+    ML-->>Pipeline: FraudScore (Score 0-100, Typology, Triggered Factors) + ML Cluster Probability
+    
+    Pipeline->>Pipeline: buildGraph() -> Radial Counterparty Topology
+    Pipeline->>Pipeline: computeVaspAttribution() -> Map known CEX & Mixer clusters
+    Pipeline->>Pipeline: computeEvidenceItems() -> Generate structured EV-XXX evidence records
+    
+    Pipeline->>AI: generateNarrative(address, fraudResult, txCount, balance)
+    alt OpenRouter Available
+        AI-->>Pipeline: Markdown Legal Investigative Narrative
+    else Network / Quota Fallback
+        AI-->>Pipeline: Deterministic Multi-Section Legal Fallback
+    end
+    
+    Pipeline->>Store: caseStore.addOrUpdate(FullCaseRecord)
+    Pipeline-->>App: onComplete() -> Navigate to CASE_DETAIL
+    App->>UI: Render Graph, Risk Gauge, Multi-Chain Portfolio, VASP Attributions & Evidence
+    Officer->>UI: Inspect Fund Flows & Export Signed Forensic PDF / JSON Bundle

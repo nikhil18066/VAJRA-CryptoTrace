@@ -1,0 +1,28 @@
+flowchart TD
+    subgraph TrainingPipeline [ML Training & Validation Pipeline - train_pipeline.py]
+        RawData[(first_order_df.csv<br/>48 MB Transaction Dataset)] --> FeatureEng[Feature Extraction: 24 Features<br/>Aggregates: Inflow, Outflow, Flow Ratios, Lifespan, Velocity]
+        FeatureEng --> LogTransform[Log1p Skewness Transformation]
+        LogTransform --> HeuristicLabeling[Heuristic Labeling: assign_heuristic_labels<br/>Unique Send > 50, Tx In > 100, ETH In > 500]
+        HeuristicLabeling --> ScalerFit[RobustScaler Fitting]
+        ScalerFit --> StratifiedCV[5-Fold Stratified Cross-Validation<br/>Anti-Overfitting Gap Protocol]
+        StratifiedCV --> ModelComp{Model Tournament}
+        ModelComp --> RF[RandomForest]
+        ModelComp --> XGB[XGBoost]
+        ModelComp --> LGB[LightGBM]
+        ModelComp -->|Select Best Model| Export[Export Artifacts: Joblib<br/>crypto_exchange_classifier.joblib<br/>feature_scaler.joblib<br/>feature_columns.joblib]
+    end
+
+    subgraph InferenceService [Python FastAPI Service - app.py:8000]
+        ClientReq[POST /predict & POST /trace] --> APIHandler[FastAPI Request Handler]
+        APIHandler --> ArtifactLoad[Load Model & Scaler Artifacts]
+        ArtifactLoad --> FeatureCalc[compute_wallet_features_live<br/>Query first_order_df.csv subset]
+        FeatureCalc --> ScalerTransform[Transform via feature_scaler.joblib]
+        ScalerTransform --> ModelInference[LightGBM predict_proba]
+        ModelInference --> Decision{Prob >= 0.70}
+        Decision -->|Yes| ExchangeLabel[EXCHANGE / HUB IDENTIFIED]
+        Decision -->|No| TransitLabel[Transit Wallet / Normal]
+        
+        APIHandler --> BFSEngine[Multi-Hop BFS Tracer: realtime_tracer.py]
+        BFSEngine --> MultiHopLog[Up to 5 Hops Trail & Exchange Off-Ramps]
+        MultiHopLog --> LEAGen[generate_lea_notice.py<br/>Section 91 CrPC Formal Requisition]
+    end

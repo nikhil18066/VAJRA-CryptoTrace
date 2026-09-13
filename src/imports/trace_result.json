@@ -1,0 +1,54 @@
+{
+  "suspect_address": "0x75b17cc9da3d4e540f866974c1b52ebbc51a5c14",
+  "total_hops_analyzed": 3,
+  "exchanges_identified": 2,
+  "trace_log": [
+    {
+      "hop": 0,
+      "address": "0x75b17cc9da3d4e540f866974c1b52ebbc51a5c14",
+      "parent": null,
+      "amount_eth": 0.0,
+      "tx_hash": "",
+      "exchange_prob": 2.514450902635372e-06,
+      "prediction": "Transit Wallet"
+    },
+    {
+      "hop": 1,
+      "address": "0x75855a2c5cd3de7c7d7d1a0fa9a9e5dbcc6eed87",
+      "parent": "0x75b17cc9da3d4e540f866974c1b52ebbc51a5c14",
+      "amount_eth": 0.0028627324454192,
+      "tx_hash": "0x9d0532bf8205ebba6155db4617fc97c04c13a7fefc827e0d6f89a5417af38162",
+      "exchange_prob": 0.9997239472690349,
+      "prediction": "EXCHANGE/HUB IDENTIFIED"
+    },
+    {
+      "hop": 1,
+      "address": "0x0059b14e35dab1b4eee1e2926c7a5660da66f747",
+      "parent": "0x75b17cc9da3d4e540f866974c1b52ebbc51a5c14",
+      "amount_eth": 0.0020648655427636,
+      "tx_hash": "0x1260dae7cfdc7177caa12209e5a1da34de48eb42a563dd363c59db3ad03570f1",
+      "exchange_prob": 0.9997316874432868,
+      "prediction": "EXCHANGE/HUB IDENTIFIED"
+    }
+  ],
+  "identified_exchanges": [
+    {
+      "hop": 1,
+      "address": "0x75855a2c5cd3de7c7d7d1a0fa9a9e5dbcc6eed87",
+      "parent": "0x75b17cc9da3d4e540f866974c1b52ebbc51a5c14",
+      "amount_eth": 0.0028627324454192,
+      "tx_hash": "0x9d0532bf8205ebba6155db4617fc97c04c13a7fefc827e0d6f89a5417af38162",
+      "exchange_prob": 0.9997239472690349,
+      "prediction": "EXCHANGE/HUB IDENTIFIED"
+    },
+    {
+      "hop": 1,
+      "address": "0x0059b14e35dab1b4eee1e2926c7a5660da66f747",
+      "parent": "0x75b17cc9da3d4e540f866974c1b52ebbc51a5c14",
+      "amount_eth": 0.0020648655427636,
+      "tx_hash": "0x1260dae7cfdc7177caa12209e5a1da34de48eb42a563dd363c59db3ad03570f1",
+      "exchange_prob": 0.9997316874432868,
+      "prediction": "EXCHANGE/HUB IDENTIFIED"
+    }
+  ]
+}

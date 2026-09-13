@@ -1,0 +1,29 @@
+flowchart TD
+    Wallet[Target Wallet / Counterparties] --> Ingestion[Extract Direct Counterparties]
+    
+    subgraph DirectAttribution [Direct Address & Cluster Mapping]
+        Ingestion --> LookupKnown{Match in KNOWN_EXCHANGE_MAP?}
+        LookupKnown -->|Match Found| KnownVASP[Binance, KuCoin, Coinbase, OKX, Bybit, WazirX, Bitfinex]
+        LookupKnown -->|Mixer Match| MixerVASP[OFAC Sanctioned Mixers: Tornado Cash etc.]
+        KnownVASP --> DirectScore[Confidence Calculation:<br/>Base 70% + 6% per Transaction Count up to 98%]
+    end
+    
+    subgraph MLAttribution [Graph & Behavioral ML Classifier]
+        Ingestion --> MLPayload[Extract 24 Structural Features]
+        MLPayload --> MLService[FastAPI /predict Endpoint]
+        MLService --> MLProb[Exchange Probability Output]
+        MLProb --> MLThreshold{Prob >= 0.75?}
+        MLThreshold -->|Yes| MLCluster[Identified Exchange Cluster ML-Classified]
+    end
+    
+    subgraph Fallback [Unhosted Classification]
+        LookupKnown -->|No Match| CheckML{ML Cluster Identified?}
+        CheckML -->|No| Unhosted[Unknown VASP / Unhosted Private Wallet<br/>Confidence: 15%]
+    end
+    
+    DirectScore --> FinalVASPList[Ranked VASP Attribution List]
+    MLCluster --> FinalVASPList
+    Unhosted --> FinalVASPList
+    
+    FinalVASPList --> EvidenceSynthesizer[Evidence Item Generator: EV-XXX Records]
+    FinalVASPList --> StatutoryPreservation[Generate Section 91 CrPC / PMLA Sec 17 Preservation Notices]

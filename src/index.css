@@ -1,0 +1,286 @@
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+@import 'tailwindcss';
+
+@theme {
+  --color-vajra-dark:     #07101f;
+  --color-vajra-navy:     #0e1c38;
+  --color-vajra-card:     #112044;
+  --color-vajra-card-2:   #0d1a35;
+  --color-vajra-blue-mid: #1a3060;
+  --color-vajra-gold:     #d4af37;
+  --color-vajra-gold-lt:  #f3e5ab;
+  --color-vajra-cyan:     #00f2fe;
+  --color-vajra-electric: #1e5fff;
+  --color-vajra-high:     #ff3d5a;
+  --color-vajra-med:      #f5a623;
+  --color-vajra-low:      #00d68f;
+
+  --font-display: 'Rajdhani', sans-serif;
+  --font-sans:    'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+@layer base {
+  * { box-sizing: border-box; }
+  body {
+    font-family: var(--font-sans);
+    background-color: #000;
+    display: flex;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+  }
+  #root {
+    width: 100%;
+    max-width: 430px;
+    height: 100dvh;
+    background-color: var(--color-vajra-dark);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 60px rgba(0, 242, 254, 0.06), 0 0 120px rgba(30, 95, 255, 0.04);
+  }
+  input, textarea, select { font-family: var(--font-sans); }
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0, 242, 254, 0.2); border-radius: 3px; }
+
+/* ── Animations ── */
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotateY(0deg) rotateX(5deg); }
+  33%       { transform: translateY(-10px) rotateY(5deg) rotateX(8deg); }
+  66%       { transform: translateY(-6px) rotateY(-4deg) rotateX(3deg); }
+}
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.35; transform: scale(1); }
+  50%       { opacity: 0.7;  transform: scale(1.08); }
+}
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes scanLine {
+  from { top: -4px; }
+  to   { top: 100%; }
+}
+@keyframes stepIn {
+  from { transform: scale(0.5); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+@keyframes progressBar {
+  from { width: 0%; }
+}
+@keyframes dash {
+  to { stroke-dashoffset: 0; }
+}
+@keyframes nodeGlow {
+  0%, 100% { filter: drop-shadow(0 0 4px currentColor); }
+  50%       { filter: drop-shadow(0 0 10px currentColor); }
+}
+@keyframes ripple {
+  from { transform: scale(0.6); opacity: 0.6; }
+  to   { transform: scale(2.2); opacity: 0; }
+}
+
+/* ── Screen Transitions ── */
+@keyframes slideInRight {
+  from { transform: translateX(28px); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+@keyframes slideInLeft {
+  from { transform: translateX(-28px); opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+@keyframes slideInUp {
+  from { transform: translateY(22px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.screen-forward { animation: slideInRight 0.22s cubic-bezier(0.4,0,0.2,1) forwards; }
+.screen-back    { animation: slideInLeft  0.22s cubic-bezier(0.4,0,0.2,1) forwards; }
+.screen-up      { animation: slideInUp    0.22s cubic-bezier(0.4,0,0.2,1) forwards; }
+.screen-fade    { animation: fadeIn       0.18s ease forwards; }
+
+/* ── Toast ── */
+@keyframes toastIn {
+  from { transform: translateY(-16px) scale(0.95); opacity: 0; }
+  to   { transform: translateY(0)     scale(1);    opacity: 1; }
+}
+@keyframes toastOut {
+  from { transform: translateY(0)     scale(1);    opacity: 1; }
+  to   { transform: translateY(-16px) scale(0.95); opacity: 0; }
+}
+.toast-enter { animation: toastIn  0.22s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+.toast-exit  { animation: toastOut 0.18s ease forwards; }
+
+/* ── AI Chat ── */
+@keyframes typingDot {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30%           { transform: translateY(-4px); opacity: 1; }
+}
+.typing-dot { animation: typingDot 1.2s ease infinite; }
+
+/* ── Shimmer skeleton ── */
+@keyframes shimmer {
+  from { background-position: -400px 0; }
+  to   { background-position: 400px 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, #0e1c38 25%, #1a3060 50%, #0e1c38 75%);
+  background-size: 400px 100%;
+  animation: shimmer 1.6s ease infinite;
+  border-radius: 8px;
+}
+
+.anim-float    { animation: float 5s ease-in-out infinite; }
+.anim-pulse    { animation: pulseGlow 2.5s ease-in-out infinite; }
+.anim-fade-up  { animation: fadeInUp 0.45s ease forwards; }
+.anim-spin     { animation: spinSlow 22s linear infinite; }
+.anim-step     { animation: stepIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+.anim-node     { animation: nodeGlow 2s ease-in-out infinite; }
+
+/* ── Utilities ── */
+.network-bg {
+  background-image: radial-gradient(circle at 1px 1px, rgba(0,242,254,0.12) 1px, transparent 0);
+  background-size: 28px 28px;
+}
+[data-theme="light"] .network-bg {
+  background-image: radial-gradient(circle at 1px 1px, rgba(30,95,255,0.1) 1px, transparent 0);
+}
+.glow-cyan  { box-shadow: 0 0 18px rgba(0,242,254,0.28); }
+.glow-gold  { box-shadow: 0 0 28px rgba(212,175,55,0.4); }
+.glow-blue  { box-shadow: 0 0 20px rgba(30,95,255,0.35); }
+.text-display { font-family: var(--font-display); letter-spacing: 0.03em; }
+.card-dark  {
+  background: var(--color-vajra-card);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 16px;
+}
+.card-glow {
+  background: var(--color-vajra-card);
+  border: 1px solid rgba(0,242,254,0.14);
+  border-radius: 16px;
+  box-shadow: 0 0 20px rgba(0,242,254,0.05);
+}
+[data-theme="light"] .card-dark,
+[data-theme="light"] .card-glow {
+  background: #ffffff;
+  border-color: rgba(0,0,0,0.09);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+.risk-high { color: var(--color-vajra-high); }
+.risk-med  { color: var(--color-vajra-med);  }
+.risk-low  { color: var(--color-vajra-low);  }
+
+/* ── Skeleton light-mode override ── */
+[data-theme="light"] .skeleton {
+  background: linear-gradient(90deg, #e8edf5 25%, #d4dce9 50%, #e8edf5 75%);
+  background-size: 400px 100%;
+}
+
+/* ── Scrollbar light-mode override ── */
+[data-theme="light"] ::-webkit-scrollbar-thumb { background: rgba(30,95,255,0.25); }
+
+/* ── Theme transition — root only; don't override button/element transitions ── */
+#root {
+  transition: background-color 0.25s ease;
+}
+
+/* ── Light mode: fix white-opacity text classes on icons and labels ── */
+[data-theme="light"] .text-white\/70,
+[data-theme="light"] .text-white\/65,
+[data-theme="light"] .text-white\/60 { color: rgba(26,32,53,0.60) !important; }
+
+[data-theme="light"] .text-white\/55,
+[data-theme="light"] .text-white\/50,
+[data-theme="light"] .text-white\/45 { color: rgba(26,32,53,0.52) !important; }
+
+[data-theme="light"] .text-white\/40,
+[data-theme="light"] .text-white\/35 { color: rgba(26,32,53,0.40) !important; }
+
+[data-theme="light"] .text-white\/30,
+[data-theme="light"] .text-white\/25 { color: rgba(26,32,53,0.30) !important; }
+
+[data-theme="light"] .text-white\/20,
+[data-theme="light"] .text-white\/15 { color: rgba(26,32,53,0.18) !important; }
+
+/* Pure white text that sits inside colored/gradient containers should stay white —
+   only non-colored-bg contexts need the dark override. We handle this with the
+   exception: blue/gradient/brand button text stays white via their explicit style prop. */
+
+/* ── Light mode: buttons with residual white-opacity backgrounds ── */
+[data-theme="light"] button[style*="rgba(255, 255, 255, 0.0"],
+[data-theme="light"] button[style*="rgba(255,255,255,0.0"] {
+  background-color: rgba(0,0,0,0.06) !important;
+}
+[data-theme="light"] button[style*="rgba(255, 255, 255, 0.1"],
+[data-theme="light"] button[style*="rgba(255,255,255,0.1"] {
+  background-color: rgba(0,0,0,0.07) !important;
+}
+
+/* ── Global interaction layer (inside @layer base so Tailwind utilities override) ── */
+@layer base {
+  button, [role="button"], a, input, textarea, select { cursor: pointer; }
+  input, textarea { cursor: text; }
+
+  button {
+    -webkit-tap-highlight-color: transparent;
+    position: relative;        /* needed for ::after ripple */
+    transition:
+      opacity      0.15s ease,
+      transform    0.12s ease,
+      box-shadow   0.15s ease,
+      background   0.15s ease,
+      border-color 0.15s ease;
+  }
+  button:hover:not(:disabled) { filter: brightness(1.12); }
+  button:active:not(:disabled) { transform: scale(0.96); filter: brightness(0.95); }
+  button:disabled { cursor: not-allowed; opacity: 0.45; }
+
+  button::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: rgba(255,255,255,0.06);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  button:active::after { opacity: 1; transition: none; }
+
+  input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: var(--color-vajra-cyan) !important;
+    box-shadow: 0 0 0 3px rgba(0,242,254,0.1);
+  }
+
+  a { transition: opacity 0.15s ease; }
+  a:hover { opacity: 0.8; }
+
+  ::selection { background: rgba(0,242,254,0.25); color: #fff; }
+
+  :focus-visible {
+    outline: 2px solid rgba(0,242,254,0.6);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  .overflow-y-auto {
+    scroll-behavior: smooth;
+    overscroll-behavior: contain;
+  }
+  .overflow-y-auto::-webkit-scrollbar       { width: 3px; }
+  .overflow-y-auto::-webkit-scrollbar-track { background: transparent; }
+  .overflow-y-auto::-webkit-scrollbar-thumb { background: rgba(0,242,254,0.15); border-radius: 4px; }
+}

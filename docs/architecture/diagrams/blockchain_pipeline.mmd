@@ -1,0 +1,40 @@
+flowchart TD
+    Input[Target Wallet Address] --> Classifier{Chain Classifier Regex}
+    
+    Classifier -->|0x... 40 Hex Chars| EVM[EVM Multi-Chain Handler]
+    Classifier -->|T... 34 Chars Base58| TRON[Tron Network Handler]
+    Classifier -->|1/3/bc1... Base58/Bech32| BTC[Bitcoin Network Handler]
+    Classifier -->|Base58 32-44 Chars| SOL[Solana Network Handler]
+    
+    subgraph EVM_Ingestion [Parallel EVM Aggregator]
+        EVM -->|Parallel Query 7 Chains| GoldRushAPI[Covalent GoldRush v1/balances_v2 & transactions_v3]
+        EVM -->|Fallback & Supplementary| EtherscanAPI[Etherscan v2 API / txlist]
+        GoldRushAPI --> LogParser[ERC-20 Log Decoder<br/>Extract USDT/USDC Transfer events]
+    end
+    
+    subgraph Tron_Ingestion [Tron Ingestion & Base58 Conversion]
+        TRON --> TronGridAPI[TronGrid REST API /accounts & /transactions]
+        TronGridAPI --> Base58Conv[Binary Base58Check & SHA256 Decoder<br/>hexToBase58Check]
+        Base58Conv --> TRC20Parser[TRC-20 Smart Contract Decoder<br/>Method: a9059cbb Transfer]
+    end
+    
+    subgraph BTC_Ingestion [Bitcoin UTXO Analyzer]
+        BTC --> BlockstreamAPI[Blockstream Esplora REST API /address & /txs]
+        BlockstreamAPI --> UTXOParser[UTXO Parser: vin & vout summation<br/>Satoshis to BTC conversion / 1e8]
+    end
+    
+    subgraph SOL_Ingestion [Solana RPC Stream]
+        SOL --> SolanaRPC[Solana JSON-RPC 2.0 getBalance & getSignatures]
+        SolanaRPC --> LamportParser[Lamports to SOL / 1e9 & Signature status]
+    end
+    
+    EVM_Ingestion --> Normalizer[Transaction Normalizer: RawTx Interface<br/>hash, from, to, value, timeStamp, tokenSymbol, chain]
+    Tron_Ingestion --> Normalizer
+    BTC_Ingestion --> Normalizer
+    SOL_Ingestion --> Normalizer
+    
+    Normalizer --> FXEngine[CoinGecko Price Conversion Cache<br/>Calculates balanceUSD & quote]
+    Normalizer --> CounterpartyAgg[Counterparty Aggregator: Top 10 Peers<br/>Frequency, Total Value, Peer Classification]
+    
+    FXEngine --> FinalPayload[WalletAnalysis Unified Output]
+    CounterpartyAgg --> FinalPayload
