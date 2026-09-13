@@ -249,15 +249,25 @@ export default function QRScannerModal({ isOpen, onClose, onScan }: QRScannerMod
         throw new Error('Camera access is not supported by your browser or device environment.');
       }
 
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode,
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-        },
-        audio: false,
-      });
+      let stream: MediaStream | null = null;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: facingMode },
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+          },
+          audio: false,
+        });
+      } catch (firstErr) {
+        console.warn('Initial camera constraint failed, retrying generic video constraint:', firstErr);
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false,
+        });
+      }
 
+      if (!stream) throw new Error('Could not obtain camera stream.');
       streamRef.current = stream;
 
       // Check for torch capability
@@ -280,7 +290,7 @@ export default function QRScannerModal({ isOpen, onClose, onScan }: QRScannerMod
     } catch (err: any) {
       console.warn('Camera initialization error:', err);
       const msg = err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError'
-        ? 'Camera permission denied. Please enable camera access in your device/browser settings.'
+        ? 'Camera permission denied. Please allow camera access in the popup or device settings.'
         : err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError'
         ? 'No camera found on this device.'
         : err.message || 'Unable to access camera.';
