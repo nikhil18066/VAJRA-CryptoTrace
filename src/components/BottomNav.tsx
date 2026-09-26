@@ -55,7 +55,7 @@ export default function BottomNav({ active, onNavigate, alertCount = 3 }: Bottom
   ];
 
   return (
-    <div className="flex-shrink-0 px-2 py-2 flex justify-around items-center"
+    <div className="md:hidden flex-shrink-0 px-2 py-2 flex justify-around items-center"
          style={{ background: t.card, borderTop: `1px solid ${t.border}` }}>
       {tabs.map((tab) => {
         const isActive = active === tab.id;

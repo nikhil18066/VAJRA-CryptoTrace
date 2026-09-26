@@ -100,175 +100,187 @@ export default function Profile({ onNavigate, onLogout, activeTab }: ProfileProp
   const [activeSection, setActiveSection] = useState<string | null>(null);
 
   const STATS = [
-    { label: 'Cases',    value: '47' },
-    { label: 'VASP IDs', value: '128' },
-    { label: 'Reports',  value: '39' },
+    { label: 'Active Cases', value: '47' },
+    { label: 'VASP Gateway IDs', value: '128' },
+    { label: 'Dossier Reports', value: '39' },
   ];
 
   const SETTINGS = [
     {
-      group: 'Account',
+      group: 'Account & Identity',
       items: [
-        { id: 'profile', label: 'Profile',         icon: 'user',   desc: 'Personal details & badge ID',    special: false },
-        { id: 'passwd',  label: 'Change Password', icon: 'lock',   desc: 'Update your credentials',        special: false },
+        { id: 'profile', label: 'Officer Profile',       icon: 'user',   desc: 'Personal credentials & police unit ID',    special: false },
+        { id: 'passwd',  label: 'Change Password',       icon: 'lock',   desc: 'Update 256-bit secure passphrase',        special: false },
       ],
     },
     {
-      group: 'Preferences',
+      group: 'Display & Preferences',
       items: [
-        { id: 'notif',   label: 'Notifications',   icon: 'bell',   desc: 'Alert & push settings',          special: false },
-        { id: 'theme',   label: 'Appearance',      icon: 'theme',  desc: isDark ? 'Dark mode' : 'Light mode', special: true },
+        { id: 'notif',   label: 'Real-Time Alerts',      icon: 'bell',   desc: 'Notification and high-risk case triggers', special: false },
+        { id: 'theme',   label: 'Color Theme Mode',      icon: 'theme',  desc: isDark ? 'Cyber Dark Mode' : 'Clean Light Mode', special: true },
       ],
     },
     {
-      group: 'System',
+      group: 'Law Enforcement Security & Audit',
       items: [
-        { id: 'security',label: 'Security & RBAC', icon: 'shield', desc: 'Roles, sessions & audit',        special: false },
-        { id: 'audit',   label: 'Audit Log',       icon: 'log',    desc: 'View all user actions',          special: false },
-        { id: 'api',     label: 'API Access',      icon: 'api',    desc: 'Manage API keys & scopes',       special: false },
+        { id: 'security',label: 'Role-Based Access (RBAC)', icon: 'shield', desc: 'Jurisdiction scopes and team permissions', special: false },
+        { id: 'audit',   label: 'Forensic Audit Trail',   icon: 'log',    desc: 'Immutable ledger of all analyst queries',   special: false },
+        { id: 'api',     label: 'Multi-Chain Node RPCs',  icon: 'api',    desc: 'Manage direct node endpoints & API keys',   special: false },
       ],
     },
   ];
 
   return (
-    <div className="flex flex-col h-full" style={{ background: t.bg }}>
+    <div className="flex flex-col h-full w-full overflow-hidden" style={{ background: t.bg }}>
 
-      {/* Header */}
-      <div className="flex-shrink-0" style={{ background: t.nav }}>
-        <div className="px-5 pt-14 pb-5">
-          <div className="flex items-center justify-between mb-5">
-            <h1 className="text-[22px] font-bold" style={{ fontFamily: "'Rajdhani', sans-serif", color: t.text }}>
-              Profile & Settings
-            </h1>
-            <VajraLogo className="w-8 h-8 opacity-60" />
-          </div>
+      {/* ── Scrollable content ── */}
+      <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: 'none' }}>
+        <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-8 pt-12 md:pt-6 pb-8 space-y-6">
 
-          {/* User card */}
-          <div className="rounded-2xl p-4 flex items-center gap-4"
-               style={{ background: t.inputBg, border: `1px solid ${t.border}` }}>
-            <div className="relative">
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-[24px] font-bold text-white"
-                   style={{
-                     background: 'linear-gradient(135deg, #1e5fff, #0033cc)',
-                     boxShadow: '0 4px 16px rgba(30,95,255,0.35)',
-                     fontFamily: "'Rajdhani', sans-serif",
-                   }}>
-                RS
-              </div>
-              <div className="absolute -bottom-1 -right-1 w-4.5 h-4.5 rounded-full bg-[#00d68f] border-2"
-                   style={{ borderColor: t.card }} />
-            </div>
-            <div className="flex-1">
-              <p className="text-[17px] font-bold" style={{ fontFamily: "'Rajdhani', sans-serif", color: t.text }}>
-                Rohit Sharma
-              </p>
-              <p className="text-[11px]" style={{ color: t.textSub }}>Investigator · Cyber Cell, Unit 23</p>
-              <p className="text-[10px] font-mono mt-0.5" style={{ color: 'rgba(0,242,254,0.7)' }}>
-                ID: LEA-CYB-2847
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-[20px] md:text-[24px] font-bold text-white tracking-wide" style={{ fontFamily: "'Rajdhani', sans-serif", color: t.text }}>
+                Officer Profile & System Settings
+              </h1>
+              <p className="text-[11px] md:text-[12px] text-white/40 mt-0.5" style={{ color: t.textMuted }}>
+                Law Enforcement Authorization & Forensic Tool Configuration
               </p>
             </div>
-            <button className="w-8 h-8 rounded-lg flex items-center justify-center"
-                    style={{ background: t.itemBg }}>
-              <svg className="w-4 h-4" style={{ color: t.textMuted }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-              </svg>
-            </button>
+            <VajraLogo className="w-9 h-9 opacity-80" />
           </div>
 
-          {/* Stats row */}
-          <div className="grid grid-cols-3 gap-2.5 mt-3">
-            {STATS.map((s) => (
-              <div key={s.label} className="rounded-xl p-3 text-center"
-                   style={{ background: t.card2, border: `1px solid ${t.border}` }}>
-                <p className="text-[20px] font-bold" style={{ fontFamily: "'Rajdhani', sans-serif", color: t.text }}>
-                  {s.value}
-                </p>
-                <p className="text-[10px]" style={{ color: t.textMuted }}>{s.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+          {/* ── 2-Column Responsive Layout on Desktop ── */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-      {/* Settings list */}
-      <div className="flex-1 overflow-y-auto px-5 py-3 space-y-4">
-        {SETTINGS.map((group) => (
-          <div key={group.group}>
-            <p className="text-[10px] font-bold uppercase tracking-widest mb-2 px-1"
-               style={{ color: t.textMuted }}>
-              {group.group}
-            </p>
-            <div className="rounded-2xl overflow-hidden" style={{ border: `1px solid ${t.border}` }}>
-              {group.items.map((item, i) => (
-                <button
-                  key={item.id}
-                  onClick={() => item.special ? toggle() : setActiveSection(activeSection === item.id ? null : item.id)}
-                  className="w-full flex items-center gap-3.5 px-4 py-3.5 transition-all duration-150 text-left"
-                  style={{
-                    background: i % 2 === 0 ? t.card : t.card2,
-                    borderBottom: i < group.items.length - 1 ? `1px solid ${t.border}` : 'none',
-                  }}>
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                       style={{ background: 'rgba(0,242,254,0.08)', color: '#00f2fe' }}>
-                    {item.id === 'theme' ? (
-                      isDark ? (
-                        <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                        </svg>
-                      ) : (
-                        <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                        </svg>
-                      )
-                    ) : (
-                      <SettingIcon id={item.icon} />
-                    )}
+            {/* Left Column: Officer Card & Quick Actions (5 cols) */}
+            <div className="lg:col-span-5 space-y-4">
+              
+              {/* Officer Badge Card */}
+              <div className="rounded-2xl p-5" style={{ background: t.card, border: `1px solid ${t.border}` }}>
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="relative">
+                    <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-[24px] font-bold text-white shadow-lg"
+                         style={{
+                           background: 'linear-gradient(135deg, #1e5fff, #0033cc)',
+                           fontFamily: "'Rajdhani', sans-serif",
+                         }}>
+                      RS
+                    </div>
+                    <div className="absolute -bottom-1 -right-1 w-4.5 h-4.5 rounded-full bg-[#00d68f] border-2"
+                         style={{ borderColor: t.card }} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[13px] font-semibold" style={{ color: t.text }}>{item.label}</p>
-                    <p className="text-[10px] mt-0.5" style={{ color: t.textMuted }}>{item.desc}</p>
+                    <p className="text-[18px] font-bold text-white truncate" style={{ fontFamily: "'Rajdhani', sans-serif", color: t.text }}>
+                      Rohit Sharma
+                    </p>
+                    <p className="text-[12px] text-white/60" style={{ color: t.textSub }}>Investigator · Cyber Cell, Unit 23</p>
+                    <p className="text-[10px] font-mono text-cyan-400 mt-0.5 font-bold">
+                      Badge ID: LEA-CYB-2847
+                    </p>
                   </div>
-                  {item.special ? (
-                    <ThemeToggle isDark={isDark} onToggle={toggle} />
-                  ) : (
-                    <svg className="w-4 h-4" style={{ color: t.textMuted }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
-        ))}
+                </div>
 
-        {/* App info */}
-        <div className="rounded-xl p-4 text-center" style={{ background: t.card2, border: `1px solid ${t.border}` }}>
-          <p className="text-[10px]" style={{ color: t.textMuted }}>VAJRA CryptoTrace · v1.0.0-beta</p>
-          <p className="text-[10px] mt-0.5" style={{ color: t.textMuted, opacity: 0.6 }}>
-            SIH26183 · Law Enforcement Edition
-          </p>
-        </div>
+                {/* Stats row */}
+                <div className="grid grid-cols-3 gap-2.5 pt-3 border-t border-white/10">
+                  {STATS.map((s) => (
+                    <div key={s.label} className="rounded-xl p-3 text-center"
+                         style={{ background: t.card2, border: `1px solid ${t.border}` }}>
+                      <p className="text-[20px] font-bold text-white" style={{ fontFamily: "'Rajdhani', sans-serif", color: t.text }}>
+                        {s.value}
+                      </p>
+                      <p className="text-[10px] text-white/40" style={{ color: t.textMuted }}>{s.label}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-        {/* Logout */}
-        <button onClick={onLogout}
-                className="w-full py-3.5 rounded-xl font-bold text-[14px] tracking-widest flex items-center justify-center gap-2.5 transition-all active:scale-95"
+              {/* Version & Law Enforcement Metadata */}
+              <div className="rounded-2xl p-4 text-center space-y-1" style={{ background: t.card2, border: `1px solid ${t.border}` }}>
+                <p className="text-[12px] font-bold text-cyan-400 font-mono">VAJRA CryptoTrace · v1.0.0-beta</p>
+                <p className="text-[11px] text-white/50" style={{ color: t.textMuted }}>
+                  SIH26183 · Law Enforcement Edition · State Cyber Crime Cell
+                </p>
+              </div>
+
+              {/* Logout Button */}
+              <button
+                onClick={onLogout}
+                className="w-full py-4 rounded-2xl font-bold text-[14px] tracking-widest flex items-center justify-center gap-2.5 transition-all hover:bg-red-500/20 active:scale-95 shadow-md"
                 style={{
-                  background: 'rgba(255,61,90,0.08)',
-                  border: '1px solid rgba(255,61,90,0.2)',
+                  background: 'rgba(255,61,90,0.1)',
+                  border: '1px solid rgba(255,61,90,0.3)',
                   color: '#ff3d5a',
                   fontFamily: "'Rajdhani', sans-serif",
-                }}>
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
-          LOGOUT
-        </button>
+                }}
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                SECURE SIGN OUT
+              </button>
 
-        <div className="h-2" />
+            </div>
+
+            {/* Right Column: Settings Groups (7 cols) */}
+            <div className="lg:col-span-7 space-y-4">
+              {SETTINGS.map((group) => (
+                <div key={group.group}>
+                  <p className="text-[11px] font-bold uppercase tracking-widest mb-2 px-1"
+                     style={{ color: t.textMuted }}>
+                    {group.group}
+                  </p>
+                  <div className="rounded-2xl overflow-hidden shadow-sm" style={{ border: `1px solid ${t.border}` }}>
+                    {group.items.map((item, i) => (
+                      <button
+                        key={item.id}
+                        onClick={() => item.special ? toggle() : setActiveSection(activeSection === item.id ? null : item.id)}
+                        className="w-full flex items-center gap-4 px-4 py-3.5 transition-all duration-150 text-left hover:brightness-105"
+                        style={{
+                          background: i % 2 === 0 ? t.card : t.card2,
+                          borderBottom: i < group.items.length - 1 ? `1px solid ${t.border}` : 'none',
+                        }}
+                      >
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                             style={{ background: 'rgba(0,242,254,0.08)', color: '#00f2fe' }}>
+                          {item.id === 'theme' ? (
+                            isDark ? (
+                              <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                  d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                              </svg>
+                            ) : (
+                              <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                  d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                              </svg>
+                            )
+                          ) : (
+                            <SettingIcon id={item.icon} />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[13px] font-bold text-white" style={{ color: t.text }}>{item.label}</p>
+                          <p className="text-[11px] text-white/50 mt-0.5" style={{ color: t.textMuted }}>{item.desc}</p>
+                        </div>
+                        {item.special ? (
+                          <ThemeToggle isDark={isDark} onToggle={toggle} />
+                        ) : (
+                          <svg className="w-4 h-4 text-white/30" style={{ color: t.textMuted }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+          </div>
+
+        </div>
       </div>
 
       <BottomNav active={activeTab} onNavigate={onNavigate} />

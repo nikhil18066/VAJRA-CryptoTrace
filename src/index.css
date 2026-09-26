@@ -23,24 +23,26 @@
   * { box-sizing: border-box; }
   body {
     font-family: var(--font-sans);
-    background-color: #000;
-    display: flex;
-    justify-content: center;
+    background-color: var(--color-vajra-dark);
     margin: 0;
     padding: 0;
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
   }
   #root {
     width: 100%;
-    max-width: 430px;
+    min-height: 100dvh;
     height: 100dvh;
     background-color: var(--color-vajra-dark);
     position: relative;
     overflow: hidden;
-    box-shadow: 0 0 60px rgba(0, 242, 254, 0.06), 0 0 120px rgba(30, 95, 255, 0.04);
+    display: flex;
+    flex-direction: column;
+    margin: 0 auto;
   }
   input, textarea, select { font-family: var(--font-sans); }
 }
+
 
 /* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 3px; }

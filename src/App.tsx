@@ -12,6 +12,7 @@ import AIInvestigator   from './screens/AIInvestigator';
 import EvidenceBundle   from './screens/EvidenceBundle';
 import CrossCaseView    from './screens/CrossCaseView';
 import SearchModal      from './components/SearchModal';
+import DesktopNav       from './components/DesktopNav';
 import { ToastStack }   from './components/Toast';
 import type { ToastData, ToastType } from './components/Toast';
 import { caseStore }     from './store/caseStore';
@@ -258,6 +259,18 @@ export default function App() {
     };
   }, []);
 
+  /* ── Global Keyboard Shortcuts (Cmd+K / Ctrl+K) ── */
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setShowSearch((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   /* ── Transition class ── */
   const transitionClass =
     navDir === 'forward' ? 'screen-forward' :
@@ -265,12 +278,27 @@ export default function App() {
                            'screen-fade';
 
   const sharedToast = showToast;
+  const isAuthScreen = screen === 'ONBOARDING' || screen === 'LOGIN';
 
   return (
-    <div className="w-full h-full relative overflow-hidden">
+    <div className="w-full h-full flex flex-col relative overflow-hidden">
 
       {/* Toast layer */}
       <ToastStack toasts={toasts} onDismiss={dismissToast} />
+
+      {/* Desktop Command Center Navigation (Hidden on Mobile) */}
+      {!isAuthScreen && (
+        <DesktopNav
+          activeTab={activeTab}
+          currentScreen={screen}
+          onNavigate={(tab) => navigateTab(tab)}
+          onOpenScreen={(s) => go(s as Screen, 'forward')}
+          onOpenSearch={() => setShowSearch(true)}
+          onLogout={logout}
+          caseId={caseId}
+          alertCount={3}
+        />
+      )}
 
       {/* Search modal overlay */}
       {showSearch && (
@@ -282,7 +310,7 @@ export default function App() {
       )}
 
       {/* Screen with key-based transition */}
-      <div key={screen} className={`w-full h-full ${transitionClass}`}>
+      <div key={screen} className={`w-full flex-1 min-h-0 ${transitionClass}`}>
 
         {screen === 'ONBOARDING' && (
           <Onboarding onComplete={() => go('LOGIN', 'forward')} />

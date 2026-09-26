@@ -90,120 +90,145 @@ export default function EvidenceBundle({ caseId, onBack }: EvidenceBundleProps) 
   }, [caseId, b?.address, b?.firstSeen, txCount, nodesCount, edgesCount, typologies.length]);
 
   return (
-    <div className="flex flex-col h-full" style={{ background: t.bg }}>
+    <div className="flex flex-col h-full w-full overflow-hidden" style={{ background: t.bg }}>
+      
       {/* Header */}
       <div className="flex-shrink-0" style={{ background: t.nav }}>
-        <div className="flex items-center gap-3 px-5 pt-14 pb-4">
-          <button onClick={onBack} className="w-9 h-9 rounded-xl flex items-center justify-center active:scale-95"
-                  style={{ background: t.inputBg }}>
-            <svg className="w-5 h-5 text-white/70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <div className="flex-1 min-w-0">
-            <h1 className="text-[18px] font-bold text-white truncate" style={{ fontFamily: "'Rajdhani', sans-serif" }}>
-              Claim-Centric Evidence Vault
-            </h1>
-            <p className="text-[11px] text-white/40 font-mono" style={{ color: t.textMuted }}>
-              Case Docket: {caseId} · SHA-256 Sealed
-            </p>
+        <div className="flex items-center justify-between px-4 sm:px-6 md:px-8 pt-12 md:pt-4 pb-4">
+          <div className="flex items-center gap-3">
+            <button onClick={onBack} className="w-9 h-9 rounded-xl flex items-center justify-center active:scale-95 transition-all"
+                    style={{ background: t.inputBg }}>
+              <svg className="w-5 h-5 text-white/70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <div className="min-w-0">
+              <h1 className="text-[18px] md:text-[20px] font-bold text-white truncate tracking-wide" style={{ fontFamily: "'Rajdhani', sans-serif" }}>
+                Claim-Centric Evidence Vault
+              </h1>
+              <p className="text-[11px] text-white/40 font-mono" style={{ color: t.textMuted }}>
+                Case Docket: {caseId} · Cryptographic SHA-256 Sealed
+              </p>
+            </div>
           </div>
           <button onClick={() => downloadCaseReportPDF(data, caseId)}
-                  className="px-3 py-1.5 rounded-lg bg-blue-600 text-white font-bold text-xs">
-            PDF
+                  className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md active:scale-95 transition-all">
+            EXPORT PDF DOSSIER
           </button>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
-        {/* Seal Badge */}
-        <div className="rounded-2xl p-4 flex items-center justify-between"
-             style={{ background: 'rgba(0,214,143,0.08)', border: '1px solid rgba(0,214,143,0.25)' }}>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold">
-              ✓
-            </div>
-            <div>
-              <p className="text-[13px] font-bold text-emerald-400">Tamper-Evident Evidence Seal Active</p>
-              <p className="text-[10px] text-white/50 font-mono">Seal: {sealHash} · Section 65B IEA Compliant</p>
-            </div>
-          </div>
-          <span className="text-[11px] font-mono px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 font-bold">
-            {evidenceItems.length} CLAIMS
-          </span>
-        </div>
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-8 py-6 space-y-6">
 
-        {/* Claim-Centric Evidence Items */}
-        <div className="space-y-3">
-          <p className="text-[11px] font-bold text-white/40 uppercase tracking-widest">
-            Cryptographically Grounded Claims
-          </p>
-
-          {evidenceItems.map((ev) => {
-            const style = TYPE_STYLES[ev.type] || { bg: 'rgba(255,255,255,0.08)', color: '#fff' };
-            return (
-              <div key={ev.id} className="rounded-xl p-4 space-y-2.5"
-                   style={{ background: t.card, border: `1px solid ${t.border}` }}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[9px] font-bold px-2 py-0.5 rounded-full uppercase font-mono"
-                          style={{ background: style.bg, color: style.color }}>
-                      {ev.type}
-                    </span>
-                    <span className="text-[10px] text-white/30 font-mono">{ev.id}</span>
-                  </div>
-                  <span className="text-[11px] font-mono font-bold text-emerald-400">{ev.confidence}% CONFIDENCE</span>
-                </div>
-
-                <p className="text-[13px] font-bold text-white">{ev.title}</p>
-
-                {ev.claim && (
-                  <div className="p-2.5 rounded-lg bg-cyan-950/30 border-l-2 border-cyan-400 text-[11px] text-cyan-200">
-                    <span className="font-semibold text-cyan-400">CLAIM: </span>
-                    {ev.claim}
-                  </div>
-                )}
-
-                <p className="text-[11px] text-white/60 leading-relaxed">{ev.summary}</p>
-
-                <div className="pt-2 border-t border-white/10 flex flex-wrap justify-between text-[10px] font-mono text-white/40">
-                  <span>Method: {ev.method || 'Cryptographic Ledger Proof'}</span>
-                  <span>Source: {ev.source}</span>
-                </div>
+          {/* Seal Badge */}
+          <div className="rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm"
+               style={{ background: 'rgba(0,214,143,0.08)', border: '1px solid rgba(0,214,143,0.25)' }}>
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold text-xl flex-shrink-0">
+                ✓
               </div>
-            );
-          })}
-        </div>
-
-        {/* Chain of Custody Audit Log */}
-        <div className="space-y-3">
-          <p className="text-[11px] font-bold text-white/40 uppercase tracking-widest">
-            Chain-of-Custody Audit Trail
-          </p>
-          <div className="rounded-xl p-4 space-y-3" style={{ background: t.card, border: `1px solid ${t.border}` }}>
-            {auditLogs.map((log, i) => (
-              <div key={i} className="flex items-start gap-3 text-[11px]">
-                <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-1.5 flex-shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-white/90" style={{ color: ROLE_COLORS[log.role] || '#fff' }}>
-                      {log.actor}
-                    </span>
-                    <span className="text-[10px] text-white/35 font-mono">{log.time}</span>
-                  </div>
-                  <p className="text-white/60 leading-snug mt-0.5">{log.action}</p>
-                </div>
+              <div>
+                <p className="text-[14px] font-bold text-emerald-400">Tamper-Evident Evidence Seal Active</p>
+                <p className="text-[11px] text-white/60 font-mono mt-0.5">Seal: {sealHash} · Section 65B Indian Evidence Act Compliant</p>
               </div>
-            ))}
+            </div>
+            <span className="text-[11px] font-mono px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold self-start sm:self-center">
+              {evidenceItems.length} SEPARATELY VERIFIED CLAIMS
+            </span>
           </div>
-        </div>
 
-        {/* Export JSON Button */}
-        <button onClick={() => downloadEvidenceBundleJSON(data, caseId)}
-                className="w-full py-4 rounded-xl font-bold text-[13px] text-white bg-blue-600 active:scale-95 transition-all">
-          EXPORT JSON EVIDENCE BUNDLE
-        </button>
+          {/* ── 2-Column Responsive Layout on Desktop ── */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            
+            {/* Left Column: Cryptographically Grounded Claims (7 cols on desktop) */}
+            <div className="lg:col-span-7 space-y-4">
+              <p className="text-[11px] font-bold text-white/40 uppercase tracking-widest">
+                Cryptographically Grounded Claims & Forensic Assertions
+              </p>
+
+              <div className="space-y-3.5">
+                {evidenceItems.map((ev) => {
+                  const style = TYPE_STYLES[ev.type] || { bg: 'rgba(255,255,255,0.08)', color: '#fff' };
+                  return (
+                    <div key={ev.id} className="rounded-2xl p-4 md:p-5 space-y-2.5 shadow-sm"
+                         style={{ background: t.card, border: `1px solid ${t.border}` }}>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase font-mono"
+                                style={{ background: style.bg, color: style.color }}>
+                            {ev.type}
+                          </span>
+                          <span className="text-[11px] text-white/40 font-mono">{ev.id}</span>
+                        </div>
+                        <span className="text-[11px] font-mono font-bold text-emerald-400">{ev.confidence}% CONFIDENCE</span>
+                      </div>
+
+                      <p className="text-[14px] font-bold text-white">{ev.title}</p>
+
+                      {ev.claim && (
+                        <div className="p-3 rounded-xl bg-cyan-950/30 border-l-2 border-cyan-400 text-[12px] text-cyan-200 leading-relaxed">
+                          <span className="font-semibold text-cyan-400">CLAIM: </span>
+                          "{ev.claim}"
+                        </div>
+                      )}
+
+                      <p className="text-[12px] text-white/65 leading-relaxed">{ev.summary}</p>
+
+                      <div className="pt-2 border-t border-white/10 flex flex-wrap justify-between gap-2 text-[10px] font-mono text-white/40">
+                        <span>Method: {ev.method || 'Cryptographic Ledger Proof'}</span>
+                        <span>Source: {ev.source}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Right Column: Chain of Custody & Actions (5 cols on desktop) */}
+            <div className="lg:col-span-5 space-y-4">
+              <p className="text-[11px] font-bold text-white/40 uppercase tracking-widest">
+                Chain-of-Custody Audit Trail
+              </p>
+
+              <div className="rounded-2xl p-5 space-y-4" style={{ background: t.card, border: `1px solid ${t.border}` }}>
+                {auditLogs.map((log, i) => (
+                  <div key={i} className="flex items-start gap-3 text-[12px]">
+                    <div className="w-2 h-2 rounded-full bg-cyan-400 mt-1.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold" style={{ color: ROLE_COLORS[log.role] || '#fff' }}>
+                          {log.actor}
+                        </span>
+                        <span className="text-[10px] text-white/35 font-mono">{log.time}</span>
+                      </div>
+                      <p className="text-white/60 leading-snug mt-0.5">{log.action}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="space-y-2.5 pt-2">
+                <button
+                  onClick={() => downloadEvidenceBundleJSON(data, caseId)}
+                  className="w-full py-4 rounded-2xl font-bold text-[13px] text-white bg-blue-600 hover:bg-blue-500 active:scale-95 transition-all shadow-lg"
+                >
+                  EXPORT JSON EVIDENCE BUNDLE
+                </button>
+                <button
+                  onClick={() => downloadCaseReportPDF(data, caseId)}
+                  className="w-full py-3.5 rounded-2xl font-bold text-[12px] text-white bg-white/10 hover:bg-white/15 active:scale-95 transition-all"
+                >
+                  DOWNLOAD COMPLETE DOSSIER (PDF)
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
       </div>
     </div>
   );
