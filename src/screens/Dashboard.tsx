@@ -42,20 +42,55 @@ function Sparkline({ isDark }: { isDark: boolean }) {
   );
 }
 
+function formatRelativeTime(isoDate?: string, fallback = 'Just now'): string {
+  if (!isoDate) return fallback;
+  try {
+    const diffMs = Date.now() - new Date(isoDate).getTime();
+    if (isNaN(diffMs) || diffMs < 0) return 'Just now';
+    const diffSec = Math.floor(diffMs / 1000);
+    if (diffSec < 45) return 'Just now';
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) return `${diffMin}m ago`;
+    const diffHr = Math.floor(diffMin / 60);
+    if (diffHr < 24) return `${diffHr}h ago`;
+    const diffDays = Math.floor(diffHr / 24);
+    return `${diffDays}d ago`;
+  } catch {
+    return fallback;
+  }
+}
+
 export default function Dashboard({
   onNavigate, onOpenCase, onOpenAI, onNewInvestigation, onOpenSearch, onOpenCrossCase, activeTab,
 }: DashboardProps) {
   const { t } = useTheme();
-  const [cases, setCases] = useState<CaseRecord[]>(caseStore.getAll());
-  const [stats, setStats] = useState(caseStore.getStats());
+  const [cases, setCases] = useState<CaseRecord[]>(() => caseStore.getAll());
+  const [stats, setStats] = useState(() => caseStore.getStats());
   const [showNcrpModal, setShowNcrpModal] = useState(false);
+  const [ticker, setTicker] = useState(0);
 
   useEffect(() => {
+    // Initial fetch
+    setCases([...caseStore.getAll()]);
+    setStats(caseStore.getStats());
+
+    // Instant subscriber whenever any case is scanned, imported, or updated
     const unsub = caseStore.subscribe(() => {
       setCases([...caseStore.getAll()]);
       setStats(caseStore.getStats());
     });
-    return unsub;
+
+    // 3-second heartbeat to keep live time ("Just now", "2m ago") ticking continuously in real-time
+    const interval = setInterval(() => {
+      setCases([...caseStore.getAll()]);
+      setStats(caseStore.getStats());
+      setTicker((prev) => prev + 1);
+    }, 3000);
+
+    return () => {
+      unsub();
+      clearInterval(interval);
+    };
   }, []);
 
   return (
@@ -82,7 +117,12 @@ export default function Dashboard({
             <div className="flex items-center gap-2.5">
               <button
                 onClick={() => setShowNcrpModal(true)}
-                className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-[12px] font-bold text-cyan-300 active:scale-95 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 transition-all shadow-sm"
+                className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-[12px] font-bold active:scale-95 transition-all shadow-sm"
+                style={{
+                  background: t.mode === 'light' ? 'rgba(30,95,255,0.08)' : 'rgba(0,242,254,0.1)',
+                  color: t.mode === 'light' ? '#1e5fff' : '#00f2fe',
+                  border: `1px solid ${t.mode === 'light' ? 'rgba(30,95,255,0.25)' : 'rgba(0,242,254,0.3)'}`,
+                }}
               >
                 <span>🇮🇳</span> NCRP 1930 Batch Import
               </button>
@@ -194,7 +234,7 @@ export default function Dashboard({
                 },
                 {
                   label: 'Total Traced ₹',
-                  value: '2.45 Cr',
+                  value: stats.totalTracedINR || '₹2.45 Cr',
                   iconBg: 'rgba(212,175,55,0.12)',
                   iconColor: '#d4af37',
                   icon: <span className="text-[16px] font-bold">₹</span>,
@@ -305,13 +345,20 @@ export default function Dashboard({
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
               {cases.map((c) => {
                 const s = RISK_STYLES[c.riskKey] || RISK_STYLES.med;
+                const relTime = formatRelativeTime(c.createdAt, c.timeAgo || 'Recent');
+                const isJustNow = relTime === 'Just now' || relTime.endsWith('s ago');
                 return (
                   <button
                     key={c.id}
                     onClick={() => onOpenCase(c.id)}
-                    className="w-full rounded-2xl p-4 flex items-center gap-3.5 transition-all hover:scale-[1.01] active:scale-[0.98] text-left group"
-                    style={{ background: t.card, border: `1px solid ${t.border}` }}
+                    className="w-full rounded-2xl p-4 flex items-center gap-3.5 transition-all hover:scale-[1.01] active:scale-[0.98] text-left group relative overflow-hidden"
+                    style={{ background: t.card, border: `1px solid ${isJustNow ? (t.mode === 'light' ? 'rgba(2,132,199,0.4)' : 'rgba(0,242,254,0.4)') : t.border}` }}
                   >
+                    {isJustNow && (
+                      <div className="absolute top-0 right-0 px-2 py-0.5 rounded-bl-lg text-[9px] font-bold uppercase tracking-wider bg-cyan-500 text-black font-mono animate-pulse">
+                        LIVE
+                      </div>
+                    )}
                     <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: s.bg }}>
                       <div className="w-3.5 h-3.5 rounded-full" style={{ background: s.dot }} />
                     </div>
@@ -323,8 +370,8 @@ export default function Dashboard({
                         <span className="text-[11px] font-mono text-white/40 truncate" style={{ color: t.textMuted }}>
                           {c.wallet ? `${c.wallet.slice(0, 6)}...${c.wallet.slice(-4)}` : '—'}
                         </span>
-                        <span className="text-[9px] text-white/20" style={{ color: t.textMuted }}>•</span>
-                        <span className="text-[11px] text-cyan-400 font-medium" style={{ color: t.accent }}>
+                        <span className="text-[9px]" style={{ color: t.textMuted }}>•</span>
+                        <span className="text-[11px] font-medium" style={{ color: t.mode === 'light' ? '#1e5fff' : '#00f2fe' }}>
                           {c.chain}
                         </span>
                       </div>
@@ -337,8 +384,8 @@ export default function Dashboard({
                         <span className="text-[11px] font-bold font-mono" style={{ color: s.color }}>
                           {c.riskScore}/100
                         </span>
-                        <span className="text-[10px] text-white/30" style={{ color: t.textMuted }}>
-                          {c.timeAgo || 'Recent'}
+                        <span className="text-[10px] text-white/30" style={{ color: isJustNow ? (t.mode === 'light' ? '#0284c7' : '#00f2fe') : t.textMuted }}>
+                          {relTime}
                         </span>
                       </div>
                     </div>

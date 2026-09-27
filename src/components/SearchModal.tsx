@@ -170,9 +170,10 @@ export default function SearchModal({ onClose, onOpenCase, onStartAnalysis }: Se
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search address, typology, VASP, or paste wallet..."
-            className="flex-1 bg-transparent text-[13px] text-white outline-none placeholder:text-white/30 font-mono"
+            className="flex-1 bg-transparent text-[13px] outline-none font-mono"
+            style={{ color: t.text }}
           />
-          <button onClick={onClose} className="text-xs text-white/40 hover:text-white px-2 py-1">
+          <button onClick={onClose} className="text-xs px-2 py-1" style={{ color: t.textMuted }}>
             ESC
           </button>
         </div>
@@ -184,15 +185,15 @@ export default function SearchModal({ onClose, onOpenCase, onStartAnalysis }: Se
             className="w-full text-left p-3 rounded-xl flex items-center justify-between bg-cyan-500/10 border border-cyan-500/40 hover:bg-cyan-500/20 transition-all active:scale-[0.98]"
           >
             <div className="flex items-center gap-2.5 min-w-0 flex-1">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-cyan-500/20 text-cyan-300 font-bold text-sm">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-cyan-500/20 text-cyan-500 font-bold text-sm">
                 ⚡
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-[12px] font-bold text-cyan-300 truncate">Launch Live On-Chain Trace</p>
-                <p className="text-[10px] text-cyan-400/70 font-mono truncate">{query.trim()}</p>
+                <p className="text-[12px] font-bold text-cyan-600 truncate">Launch Live On-Chain Trace</p>
+                <p className="text-[10px] font-mono truncate" style={{ color: t.textMuted }}>{query.trim()}</p>
               </div>
             </div>
-            <span className="text-[10px] font-bold px-2 py-1 rounded bg-cyan-500/20 text-cyan-300 tracking-wide font-mono">
+            <span className="text-[10px] font-bold px-2 py-1 rounded bg-cyan-500/20 text-cyan-600 tracking-wide font-mono">
               ANALYZE ›
             </span>
           </button>
@@ -213,6 +214,7 @@ export default function SearchModal({ onClose, onOpenCase, onStartAnalysis }: Se
               style={{
                 background: activeFilter === f.id ? '#1e5fff' : t.inputBg,
                 color: activeFilter === f.id ? '#fff' : t.textSub,
+                border: `1px solid ${activeFilter === f.id ? '#1e5fff' : t.border}`,
               }}
             >
               {f.label}
@@ -223,7 +225,7 @@ export default function SearchModal({ onClose, onOpenCase, onStartAnalysis }: Se
         {/* Results List */}
         <div className="max-h-72 overflow-y-auto space-y-1.5 pt-1">
           {results.length === 0 && !isAddressQuery ? (
-            <p className="text-center text-xs text-white/40 py-6">No matching intelligence artifacts found</p>
+            <p className="text-center text-xs py-6" style={{ color: t.textMuted }}>No matching intelligence artifacts found</p>
           ) : (
             results.map((r, idx) => {
               const tc = TYPE_COLORS[r.type] || { bg: 'rgba(255,255,255,0.1)', color: '#fff' };
@@ -231,8 +233,8 @@ export default function SearchModal({ onClose, onOpenCase, onStartAnalysis }: Se
                 <button
                   key={idx}
                   onClick={() => { onOpenCase(r.id); onClose(); }}
-                  className="w-full text-left p-2.5 rounded-xl flex items-center justify-between hover:bg-white/5 transition-all"
-                  style={{ border: `1px solid ${t.border}` }}
+                  className="w-full text-left p-2.5 rounded-xl flex items-center justify-between transition-all"
+                  style={{ background: t.card2, border: `1px solid ${t.border}` }}
                 >
                   <div className="flex items-center gap-2.5 min-w-0 flex-1 mr-2">
                     <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
@@ -240,13 +242,13 @@ export default function SearchModal({ onClose, onOpenCase, onStartAnalysis }: Se
                       {TYPE_ICON[r.type]}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-[12px] font-bold text-white truncate">{r.title}</p>
-                      <p className="text-[10px] text-white/40 truncate">{r.sub}</p>
+                      <p className="text-[12px] font-bold truncate" style={{ color: t.text }}>{r.title}</p>
+                      <p className="text-[10px] truncate" style={{ color: t.textMuted }}>{r.sub}</p>
                     </div>
                   </div>
                   {r.risk && (
                     <span className="text-[10px] font-bold font-mono px-2 py-0.5 rounded"
-                          style={{ color: RISK_COLOR[r.riskKey || 'med'] || '#fff' }}>
+                          style={{ color: RISK_COLOR[r.riskKey || 'med'] || t.text }}>
                       {r.risk}
                     </span>
                   )}

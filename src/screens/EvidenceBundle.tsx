@@ -126,15 +126,17 @@ export default function EvidenceBundle({ caseId, onBack }: EvidenceBundleProps) 
           <div className="rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm"
                style={{ background: 'rgba(0,214,143,0.08)', border: '1px solid rgba(0,214,143,0.25)' }}>
             <div className="flex items-center gap-3.5">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold text-xl flex-shrink-0">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center text-emerald-500 font-bold text-xl flex-shrink-0">
                 ✓
               </div>
               <div>
-                <p className="text-[14px] font-bold text-emerald-400">Tamper-Evident Evidence Seal Active</p>
-                <p className="text-[11px] text-white/60 font-mono mt-0.5">Seal: {sealHash} · Section 65B Indian Evidence Act Compliant</p>
+                <p className="text-[14px] font-bold text-emerald-600">Tamper-Evident Evidence Seal Active</p>
+                <p className="text-[11px] font-mono mt-0.5" style={{ color: t.mode === 'light' ? '#047857' : 'rgba(255,255,255,0.6)' }}>
+                  Seal: {sealHash} · Section 65B Indian Evidence Act Compliant
+                </p>
               </div>
             </div>
-            <span className="text-[11px] font-mono px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold self-start sm:self-center">
+            <span className="text-[11px] font-mono px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-600 font-bold self-start sm:self-center">
               {evidenceItems.length} SEPARATELY VERIFIED CLAIMS
             </span>
           </div>
@@ -144,7 +146,7 @@ export default function EvidenceBundle({ caseId, onBack }: EvidenceBundleProps) 
             
             {/* Left Column: Cryptographically Grounded Claims (7 cols on desktop) */}
             <div className="lg:col-span-7 space-y-4">
-              <p className="text-[11px] font-bold text-white/40 uppercase tracking-widest">
+              <p className="text-[11px] font-bold uppercase tracking-widest" style={{ color: t.textMuted }}>
                 Cryptographically Grounded Claims & Forensic Assertions
               </p>
 
@@ -160,23 +162,25 @@ export default function EvidenceBundle({ caseId, onBack }: EvidenceBundleProps) 
                                 style={{ background: style.bg, color: style.color }}>
                             {ev.type}
                           </span>
-                          <span className="text-[11px] text-white/40 font-mono">{ev.id}</span>
+                          <span className="text-[11px] font-mono" style={{ color: t.textMuted }}>{ev.id}</span>
                         </div>
-                        <span className="text-[11px] font-mono font-bold text-emerald-400">{ev.confidence}% CONFIDENCE</span>
+                        <span className="text-[11px] font-mono font-bold text-emerald-500">{ev.confidence}% CONFIDENCE</span>
                       </div>
 
-                      <p className="text-[14px] font-bold text-white">{ev.title}</p>
+                      <p className="text-[14px] font-bold" style={{ color: t.text }}>{ev.title}</p>
 
                       {ev.claim && (
-                        <div className="p-3 rounded-xl bg-cyan-950/30 border-l-2 border-cyan-400 text-[12px] text-cyan-200 leading-relaxed">
-                          <span className="font-semibold text-cyan-400">CLAIM: </span>
+                        <div className="p-3 rounded-xl border-l-2 border-cyan-400 text-[12px] leading-relaxed"
+                             style={{ background: t.mode === 'light' ? '#f0f9ff' : 'rgba(8,47,73,0.3)', color: t.mode === 'light' ? '#0369a1' : '#a5f3fc' }}>
+                          <span className="font-semibold text-cyan-600">CLAIM: </span>
                           "{ev.claim}"
                         </div>
                       )}
 
-                      <p className="text-[12px] text-white/65 leading-relaxed">{ev.summary}</p>
+                      <p className="text-[12px] leading-relaxed" style={{ color: t.textSub }}>{ev.summary}</p>
 
-                      <div className="pt-2 border-t border-white/10 flex flex-wrap justify-between gap-2 text-[10px] font-mono text-white/40">
+                      <div className="pt-2 flex flex-wrap justify-between gap-2 text-[10px] font-mono"
+                           style={{ borderTop: `1px solid ${t.border}`, color: t.textMuted }}>
                         <span>Method: {ev.method || 'Cryptographic Ledger Proof'}</span>
                         <span>Source: {ev.source}</span>
                       </div>
@@ -188,22 +192,22 @@ export default function EvidenceBundle({ caseId, onBack }: EvidenceBundleProps) 
 
             {/* Right Column: Chain of Custody & Actions (5 cols on desktop) */}
             <div className="lg:col-span-5 space-y-4">
-              <p className="text-[11px] font-bold text-white/40 uppercase tracking-widest">
+              <p className="text-[11px] font-bold uppercase tracking-widest" style={{ color: t.textMuted }}>
                 Chain-of-Custody Audit Trail
               </p>
 
-              <div className="rounded-2xl p-5 space-y-4" style={{ background: t.card, border: `1px solid ${t.border}` }}>
+              <div className="rounded-2xl p-5 space-y-4 shadow-sm" style={{ background: t.card, border: `1px solid ${t.border}` }}>
                 {auditLogs.map((log, i) => (
                   <div key={i} className="flex items-start gap-3 text-[12px]">
                     <div className="w-2 h-2 rounded-full bg-cyan-400 mt-1.5 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
-                        <span className="font-bold" style={{ color: ROLE_COLORS[log.role] || '#fff' }}>
+                        <span className="font-bold" style={{ color: ROLE_COLORS[log.role] || t.text }}>
                           {log.actor}
                         </span>
-                        <span className="text-[10px] text-white/35 font-mono">{log.time}</span>
+                        <span className="text-[10px] font-mono" style={{ color: t.textMuted }}>{log.time}</span>
                       </div>
-                      <p className="text-white/60 leading-snug mt-0.5">{log.action}</p>
+                      <p className="leading-snug mt-0.5" style={{ color: t.textSub }}>{log.action}</p>
                     </div>
                   </div>
                 ))}
@@ -219,7 +223,8 @@ export default function EvidenceBundle({ caseId, onBack }: EvidenceBundleProps) 
                 </button>
                 <button
                   onClick={() => downloadCaseReportPDF(data, caseId)}
-                  className="w-full py-3.5 rounded-2xl font-bold text-[12px] text-white bg-white/10 hover:bg-white/15 active:scale-95 transition-all"
+                  className="w-full py-3.5 rounded-2xl font-bold text-[12px] active:scale-95 transition-all shadow-sm"
+                  style={{ background: t.card2, border: `1px solid ${t.border}`, color: t.text }}
                 >
                   DOWNLOAD COMPLETE DOSSIER (PDF)
                 </button>

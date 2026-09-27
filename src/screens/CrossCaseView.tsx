@@ -138,7 +138,7 @@ export default function CrossCaseView({ onBack, onOpenCase }: CrossCaseViewProps
                 <svg viewBox="0 0 340 300" className="w-full h-full">
                   <defs>
                     <pattern id="crossGrid" width="20" height="20" patternUnits="userSpaceOnUse">
-                      <circle cx="10" cy="10" r="0.8" fill="rgba(255,255,255,0.06)" />
+                      <circle cx="10" cy="10" r="0.8" fill={t.mode === 'light' ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.06)'} />
                     </pattern>
                   </defs>
                   <rect width="100%" height="100%" fill="url(#crossGrid)" />
@@ -154,7 +154,7 @@ export default function CrossCaseView({ onBack, onOpenCase }: CrossCaseViewProps
                         <line
                           x1={p1.x} y1={p1.y}
                           x2={p2.x} y2={p2.y}
-                          stroke={isSelected ? '#00f2fe' : isHigh ? 'rgba(255,61,90,0.5)' : 'rgba(255,255,255,0.15)'}
+                          stroke={isSelected ? '#00f2fe' : isHigh ? 'rgba(255,61,90,0.6)' : t.mode === 'light' ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.18)'}
                           strokeWidth={isSelected ? 2 : isHigh ? 1.5 : 1}
                           strokeDasharray={isHigh ? undefined : '3,3'}
                         />
@@ -189,12 +189,12 @@ export default function CrossCaseView({ onBack, onOpenCase }: CrossCaseViewProps
                               fontFamily="monospace" fontWeight="bold">
                           {c.id.split('-').pop()}
                         </text>
-                        <text y="7" textAnchor="middle" fontSize="8" fill="white"
+                        <text y="7" textAnchor="middle" fontSize="8" fill={t.mode === 'light' ? '#0f172a' : '#ffffff'}
                               fontWeight="bold" fontFamily="sans-serif">
                           {c.score}
                         </text>
-                        <text y="30" textAnchor="middle" fontSize="7" fill="rgba(255,255,255,0.4)"
-                              fontFamily="monospace">
+                        <text y="30" textAnchor="middle" fontSize="7" fill={t.mode === 'light' ? '#334155' : 'rgba(255,255,255,0.6)'}
+                              fontFamily="monospace" fontWeight="600">
                           {c.id}
                         </text>
                       </g>
@@ -224,8 +224,8 @@ export default function CrossCaseView({ onBack, onOpenCase }: CrossCaseViewProps
                               fontWeight="bold" fontFamily="sans-serif">
                           {s.id}
                         </text>
-                        <text y="25" textAnchor="middle" fontSize="7" fill="rgba(255,255,255,0.5)"
-                              fontFamily="sans-serif">
+                        <text y="25" textAnchor="middle" fontSize="7" fill={t.mode === 'light' ? '#334155' : 'rgba(255,255,255,0.7)'}
+                              fontFamily="sans-serif" fontWeight="600">
                           {s.label}
                         </text>
                       </g>
@@ -235,7 +235,7 @@ export default function CrossCaseView({ onBack, onOpenCase }: CrossCaseViewProps
               </div>
 
               {/* Legend */}
-              <div className="flex items-center justify-center gap-4 py-2 text-[10px] text-white/40">
+              <div className="flex items-center justify-center gap-4 py-2 text-[10px]" style={{ color: t.textMuted }}>
                 <div className="flex items-center gap-1.5">
                   <div className="w-2.5 h-2.5 rounded-full bg-[#ff3d5a]" />
                   <span style={{ color: t.textMuted }}>Case Node</span>
@@ -254,13 +254,13 @@ export default function CrossCaseView({ onBack, onOpenCase }: CrossCaseViewProps
               {selectedCaseObj && (
                 <div className="rounded-xl p-4 space-y-2 animate-fadeIn" style={{ background: t.card, border: `1px solid ${t.borderAccent}` }}>
                   <div className="flex items-center justify-between">
-                    <span className="text-[12px] font-bold text-white font-mono">{selectedCaseObj.id}</span>
+                    <span className="text-[12px] font-bold font-mono" style={{ color: t.text }}>{selectedCaseObj.id}</span>
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-500/15 text-[#ff3d5a]">
                       Score: {selectedCaseObj.score}/100
                     </span>
                   </div>
-                  <p className="text-[11px] font-mono text-cyan-300 break-all">{selectedCaseObj.wallet || 'Target Address'}</p>
-                  <p className="text-[10px] text-white/50">{selectedCaseObj.chain} Network</p>
+                  <p className="text-[11px] font-mono text-cyan-500 font-semibold break-all">{selectedCaseObj.wallet || 'Target Address'}</p>
+                  <p className="text-[10px]" style={{ color: t.textMuted }}>{selectedCaseObj.chain} Network</p>
                   <button onClick={() => onOpenCase(selectedCaseObj.id)}
                           className="w-full mt-2 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-[11px] active:scale-95 transition-all">
                     Open Full Case Dossier →
@@ -271,13 +271,13 @@ export default function CrossCaseView({ onBack, onOpenCase }: CrossCaseViewProps
               {selectedSharedObj && (
                 <div className="rounded-xl p-4 space-y-2 animate-fadeIn" style={{ background: t.card, border: `1px solid ${t.borderAccent}` }}>
                   <div className="flex items-center justify-between">
-                    <span className="text-[12px] font-bold text-white">{selectedSharedObj.label} ({selectedSharedObj.id})</span>
-                    <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400">
+                    <span className="text-[12px] font-bold" style={{ color: t.text }}>{selectedSharedObj.label} ({selectedSharedObj.id})</span>
+                    <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500">
                       {selectedSharedObj.type}
                     </span>
                   </div>
-                  <p className="text-[11px] font-mono text-cyan-300">{selectedSharedObj.addr}</p>
-                  <p className="text-[10px] text-white/60">
+                  <p className="text-[11px] font-mono text-cyan-500 font-semibold">{selectedSharedObj.addr}</p>
+                  <p className="text-[10px]" style={{ color: t.textSub }}>
                     Intersects with active cases across multiple jurisdiction dockets in the national registry.
                   </p>
                 </div>

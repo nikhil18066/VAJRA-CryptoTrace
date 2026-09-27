@@ -3,12 +3,15 @@ import BottomNav from '../components/BottomNav';
 import { useTheme } from '../context/theme';
 import QRScannerModal from '../components/QRScannerModal';
 import type { ScannedCryptoTarget } from '../components/QRScannerModal';
+import { caseStore } from '../store/caseStore';
+import type { CaseRecord } from '../store/caseStore';
 
 type Tab = 'DASHBOARD' | 'INVESTIGATE' | 'ALERTS' | 'PROFILE';
 
 interface InvestigateProps {
   onNavigate: (tab: Tab) => void;
   onStartAnalysis: (wallet: string, chain: string, caseId: string) => void;
+  onOpenCase?: (caseId: string) => void;
   activeTab: Tab;
   initialWallet?: string;
   initialChain?: string;
@@ -37,16 +40,24 @@ const DEMO_WALLETS = [
   { addr: '0x1111111254fb6c44bac0bed2854e76f90643097d', chain: 'Polygon', label: 'Polygon Safe Multi-Sig (18 Risk)' },
 ];
 
-export default function Investigate({ onNavigate, onStartAnalysis, activeTab, initialWallet = '', initialChain = 'Auto Detect' }: InvestigateProps) {
+export default function Investigate({
+  onNavigate,
+  onStartAnalysis,
+  onOpenCase,
+  activeTab,
+  initialWallet = '',
+  initialChain = 'Auto Detect'
+}: InvestigateProps) {
   const { t } = useTheme();
-  const [wallet, setWallet]         = useState(initialWallet);
-  const [chain, setChain]           = useState(initialChain);
-  const [caseId, setCaseId]         = useState('');
-  const [caseDesc, setCaseDesc]     = useState('');
-  const [showDrop, setShowDrop]     = useState(false);
+  const [wallet, setWallet]             = useState(initialWallet);
+  const [chain, setChain]               = useState(initialChain);
+  const [caseId, setCaseId]             = useState('');
+  const [caseDesc, setCaseDesc]         = useState('');
+  const [showDrop, setShowDrop]         = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showQRScanner, setShowQRScanner] = useState(false);
   const [scannedAlert, setScannedAlert] = useState<string | null>(null);
+  const [duplicateCase, setDuplicateCase] = useState<CaseRecord | null>(null);
   
   // Path Engine Options
   const [maxHops, setMaxHops]       = useState(5);
@@ -55,10 +66,32 @@ export default function Investigate({ onNavigate, onStartAnalysis, activeTab, in
 
   const [error, setError]           = useState('');
 
-  const handleStart = () => {
-    if (!wallet.trim()) { setError('Please enter a wallet address or scan a QR code.'); return; }
+  const handleStart = (forceNewId: boolean = false) => {
+    const isForced = typeof forceNewId === 'boolean' && forceNewId === true;
+    const trimmed = wallet.trim();
+    if (!trimmed) {
+      setError('Please enter a wallet address or scan a QR code.');
+      return;
+    }
     setError('');
-    onStartAnalysis(wallet.trim(), chain, caseId.trim() || `INV-2024-${Math.floor(10000 + Math.random() * 90000)}`);
+
+    // If not forced, check if this target address or Case ID already exists in registry
+    if (!isForced) {
+      const existingByWallet = caseStore.getByWallet(trimmed);
+      const existingById = caseId.trim() ? caseStore.getById(caseId.trim()) : undefined;
+      const existing = existingByWallet || existingById;
+
+      if (existing) {
+        setDuplicateCase(existing);
+        return;
+      }
+    }
+
+    onStartAnalysis(
+      trimmed,
+      chain,
+      caseId.trim() || `INV-2024-${Math.floor(10000 + Math.random() * 90000)}`
+    );
   };
 
   const handleQRScanned = (target: ScannedCryptoTarget) => {
@@ -68,7 +101,13 @@ export default function Investigate({ onNavigate, onStartAnalysis, activeTab, in
       setChain(match);
     }
     setError('');
-    setScannedAlert(`QR Ingested: ${target.address.slice(0, 8)}...${target.address.slice(-6)} (${target.chain})`);
+    
+    const existing = caseStore.getByWallet(target.address);
+    if (existing) {
+      setScannedAlert(`QR Ingested: ${target.address.slice(0, 8)}...${target.address.slice(-6)} • Existing Case [${existing.id}] Found`);
+    } else {
+      setScannedAlert(`QR Ingested: ${target.address.slice(0, 8)}...${target.address.slice(-6)} (${target.chain})`);
+    }
   };
 
   const InputRow = ({ label, placeholder, value, onChange, mono = false }:
@@ -154,7 +193,12 @@ export default function Investigate({ onNavigate, onStartAnalysis, activeTab, in
                   <button
                     type="button"
                     onClick={() => setShowQRScanner(true)}
-                    className="absolute right-1.5 top-1.5 bottom-1.5 px-3.5 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/30 text-cyan-300 font-bold text-[12px] flex items-center gap-1.5 active:scale-95 transition-all shadow-sm"
+                    className="absolute right-1.5 top-1.5 bottom-1.5 px-3.5 rounded-lg font-bold text-[12px] flex items-center gap-1.5 active:scale-95 transition-all shadow-sm"
+                    style={{
+                      background: t.mode === 'light' ? 'rgba(2,132,199,0.12)' : 'rgba(0,242,254,0.15)',
+                      color: t.mode === 'light' ? '#0284c7' : '#00f2fe',
+                      border: `1px solid ${t.mode === 'light' ? 'rgba(2,132,199,0.3)' : 'rgba(0,242,254,0.3)'}`,
+                    }}
                   >
                     <span className="text-sm">📷</span>
                     <span>Scan QR</span>
@@ -312,7 +356,7 @@ export default function Investigate({ onNavigate, onStartAnalysis, activeTab, in
 
               {/* Start Button */}
               <button
-                onClick={handleStart}
+                onClick={() => handleStart(false)}
                 className="w-full text-white font-bold py-4 rounded-2xl text-[16px] tracking-widest active:scale-95 transition-all shadow-xl"
                 style={{
                   background: wallet.trim()
@@ -348,14 +392,14 @@ export default function Investigate({ onNavigate, onStartAnalysis, activeTab, in
                       style={{ background: t.card2, border: `1px solid ${t.border}` }}
                     >
                       <div className="min-w-0 pr-2">
-                        <div className="text-[12px] font-bold text-cyan-300 group-hover:text-cyan-200">
+                        <div className="text-[12px] font-bold" style={{ color: t.mode === 'light' ? '#0284c7' : '#00f2fe' }}>
                           {item.label}
                         </div>
-                        <div className="text-[10px] font-mono text-white/40 truncate mt-0.5" style={{ color: t.textMuted }}>
+                        <div className="text-[10px] font-mono truncate mt-0.5" style={{ color: t.textMuted }}>
                           {item.addr}
                         </div>
                       </div>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/10 text-blue-300 font-bold flex-shrink-0">
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/10 text-blue-500 font-bold flex-shrink-0">
                         {item.chain.split(' ')[0]}
                       </span>
                     </button>
@@ -365,14 +409,14 @@ export default function Investigate({ onNavigate, onStartAnalysis, activeTab, in
 
               {/* Multi-Chain Radar & Legal Standard */}
               <div className="rounded-2xl p-5 space-y-3" style={{ background: t.card, border: `1px solid ${t.border}` }}>
-                <div className="flex items-center gap-2 text-[13px] font-bold text-white" style={{ fontFamily: "'Rajdhani', sans-serif" }}>
+                <div className="flex items-center gap-2 text-[13px] font-bold" style={{ fontFamily: "'Rajdhani', sans-serif", color: t.text }}>
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
                   Statutory Evidence Compliance
                 </div>
-                <p className="text-[11px] text-white/60 leading-relaxed">
+                <p className="text-[11px] leading-relaxed" style={{ color: t.textSub }}>
                   Analyses executed through VAJRA generate tamper-evident SHA-256 sealed exhibits compliant with <strong>Section 91 CrPC</strong> / <strong>Section 94 BNSS 2023</strong> and Section 65B Indian Evidence Act standards for legal admissibility.
                 </p>
-                <div className="flex items-center gap-2 pt-2 border-t border-white/10 text-[10px] text-white/40 font-mono">
+                <div className="flex items-center gap-2 pt-2 border-t text-[10px] font-mono" style={{ borderColor: t.border, color: t.textMuted }}>
                   <span>🔒 256-Bit Cryptographic Dossier Generation Active</span>
                 </div>
               </div>
@@ -392,6 +436,153 @@ export default function Investigate({ onNavigate, onStartAnalysis, activeTab, in
         onClose={() => setShowQRScanner(false)}
         onScan={handleQRScanned}
       />
+
+      {/* Duplicate / Existing Case Ingestion Modal */}
+      {duplicateCase && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fadeIn">
+          <div
+            className="w-full max-w-lg rounded-2xl p-6 shadow-2xl space-y-4 animate-scaleUp"
+            style={{
+              background: t.card,
+              border: `1.5px solid ${t.mode === 'light' ? 'rgba(245,158,11,0.4)' : 'rgba(245,158,11,0.5)'}`,
+              boxShadow: '0 20px 50px rgba(0,0,0,0.3)',
+            }}
+          >
+            {/* Modal Header */}
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-amber-500/15 text-amber-500 border border-amber-500/30 flex-shrink-0">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-[17px] font-bold tracking-wide" style={{ fontFamily: "'Rajdhani', sans-serif", color: t.text }}>
+                    Case Already Registered in Registry
+                  </h3>
+                  <p className="text-[11px]" style={{ color: t.textMuted }}>
+                    This target wallet address is already actively indexed in VAJRA
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setDuplicateCase(null)}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-colors"
+                style={{ color: t.textMuted }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Existing Case Snapshot Card */}
+            <div className="p-4 rounded-xl space-y-2.5" style={{ background: t.card2, border: `1px solid ${t.border}` }}>
+              <div className="flex items-center justify-between">
+                <span className="text-[14px] font-bold font-mono" style={{ color: t.mode === 'light' ? '#0284c7' : '#00f2fe' }}>
+                  {duplicateCase.id}
+                </span>
+                <span
+                  className="text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase"
+                  style={{
+                    background: duplicateCase.riskScore >= 70 ? 'rgba(255,61,90,0.15)' : 'rgba(245,166,35,0.15)',
+                    color: duplicateCase.riskScore >= 70 ? '#ff3d5a' : '#f5a623',
+                  }}
+                >
+                  {duplicateCase.riskLevel} ({duplicateCase.riskScore}/100)
+                </span>
+              </div>
+              
+              <div className="text-[11px] font-mono break-all leading-relaxed" style={{ color: t.textSub }}>
+                <span className="font-semibold" style={{ color: t.textMuted }}>Target Address: </span>
+                {duplicateCase.wallet}
+              </div>
+
+              <div className="grid grid-cols-3 gap-2 pt-1 border-t text-[11px]" style={{ borderColor: t.border }}>
+                <div>
+                  <span className="block text-[10px]" style={{ color: t.textMuted }}>Chain</span>
+                  <strong style={{ color: t.text }}>{duplicateCase.chain}</strong>
+                </div>
+                <div>
+                  <span className="block text-[10px]" style={{ color: t.textMuted }}>Typology</span>
+                  <strong className="truncate block" style={{ color: t.text }}>{duplicateCase.typology}</strong>
+                </div>
+                <div>
+                  <span className="block text-[10px]" style={{ color: t.textMuted }}>Tx Count</span>
+                  <strong style={{ color: t.text }}>{duplicateCase.txCount} txns</strong>
+                </div>
+              </div>
+            </div>
+
+            {/* Prompt explanation */}
+            <p className="text-[12px] leading-relaxed" style={{ color: t.textSub }}>
+              To prevent duplicate docket entries and split audit trails, you can navigate directly to this existing dossier or run an in-place forensic re-scan.
+            </p>
+
+            {/* Action Buttons */}
+            <div className="space-y-2 pt-1">
+              {/* Primary: Open Existing Case */}
+              <button
+                onClick={() => {
+                  const targetId = duplicateCase.id;
+                  setDuplicateCase(null);
+                  if (onOpenCase) {
+                    onOpenCase(targetId);
+                  } else {
+                    onNavigate('DASHBOARD');
+                  }
+                }}
+                className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-[13px] font-bold text-white bg-blue-600 hover:bg-blue-500 shadow-md active:scale-95 transition-all"
+              >
+                <span>🔍</span> Open Existing Case Dossier ({duplicateCase.id})
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+              </button>
+
+              <div className="grid grid-cols-2 gap-2">
+                {/* Secondary: Re-Scan existing case */}
+                <button
+                  onClick={() => {
+                    const existingId = duplicateCase.id;
+                    setDuplicateCase(null);
+                    onStartAnalysis(wallet.trim(), chain, existingId);
+                  }}
+                  className="w-full py-2.5 rounded-xl text-[12px] font-bold text-center active:scale-95 transition-all"
+                  style={{
+                    background: t.mode === 'light' ? 'rgba(30,95,255,0.08)' : 'rgba(0,242,254,0.1)',
+                    color: t.mode === 'light' ? '#1e5fff' : '#00f2fe',
+                    border: `1px solid ${t.mode === 'light' ? 'rgba(30,95,255,0.25)' : 'rgba(0,242,254,0.3)'}`,
+                  }}
+                >
+                  🔄 Re-Scan & Update Trace
+                </button>
+
+                {/* Cancel */}
+                <button
+                  onClick={() => setDuplicateCase(null)}
+                  className="w-full py-2.5 rounded-xl text-[12px] font-medium text-center active:scale-95 transition-all"
+                  style={{ background: t.card2, color: t.textMuted, border: `1px solid ${t.border}` }}
+                >
+                  Cancel
+                </button>
+              </div>
+
+              {/* Force separate case button */}
+              <div className="text-center pt-1">
+                <button
+                  onClick={() => {
+                    setDuplicateCase(null);
+                    handleStart(true);
+                  }}
+                  className="text-[11px] underline hover:opacity-80 transition-opacity"
+                  style={{ color: t.textMuted }}
+                >
+                  Create separate new docket with unique FIR ID anyway
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

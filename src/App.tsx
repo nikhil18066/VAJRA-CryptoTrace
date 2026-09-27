@@ -349,6 +349,7 @@ export default function App() {
           <Investigate
             onNavigate={navigateTab}
             onStartAnalysis={startAnalysis}
+            onOpenCase={openCase}
             activeTab={activeTab}
           />
         )}

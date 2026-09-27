@@ -364,15 +364,15 @@ export default function AIInvestigator({ caseId, onBack }: AIInvestigatorProps) 
             <span className="text-[10px] font-mono uppercase text-cyan-400 font-bold block mb-1">
               Active Case Briefing
             </span>
-            <h3 className="text-[16px] font-bold text-white" style={{ fontFamily: "'Rajdhani', sans-serif" }}>
+            <h3 className="text-[16px] font-bold" style={{ fontFamily: "'Rajdhani', sans-serif", color: t.text }}>
               {caseId}
             </h3>
           </div>
 
           {/* Target Wallet Card */}
           <div className="rounded-xl p-3 space-y-1" style={{ background: t.card2, border: `1px solid ${t.border}` }}>
-            <span className="text-[10px] text-white/40 uppercase font-mono">Target Wallet ({caseContext.chain})</span>
-            <p className="text-[12px] font-mono font-bold text-cyan-300 break-all select-all">
+            <span className="text-[10px] uppercase font-mono" style={{ color: t.textMuted }}>Target Wallet ({caseContext.chain})</span>
+            <p className="text-[12px] font-mono font-bold text-cyan-400 break-all select-all">
               {caseContext.wallet}
             </p>
           </div>
@@ -381,31 +381,31 @@ export default function AIInvestigator({ caseId, onBack }: AIInvestigatorProps) 
           <div className="rounded-xl p-3 flex items-center justify-between"
                style={{ background: t.card2, border: `1px solid ${t.border}` }}>
             <div>
-              <span className="text-[10px] text-white/40 uppercase font-mono">Risk DNA Vector</span>
+              <span className="text-[10px] uppercase font-mono" style={{ color: t.textMuted }}>Risk DNA Vector</span>
               <p className="text-[13px] font-bold text-[#ff3d5a]">{caseContext.score}/100 ({caseContext.scoreLabel})</p>
             </div>
             <div className="text-right">
-              <span className="text-[10px] text-white/40 uppercase font-mono">Typology</span>
-              <p className="text-[11px] font-medium text-white/80 truncate max-w-[120px]">{caseContext.typology}</p>
+              <span className="text-[10px] uppercase font-mono" style={{ color: t.textMuted }}>Typology</span>
+              <p className="text-[11px] font-medium truncate max-w-[120px]" style={{ color: t.textSub }}>{caseContext.typology}</p>
             </div>
           </div>
 
           {/* VASP Attribution */}
           <div className="rounded-xl p-3 space-y-1.5" style={{ background: t.card2, border: `1px solid ${t.border}` }}>
-            <span className="text-[10px] text-white/40 uppercase font-mono">Identified VASP Gateway</span>
-            <p className="text-[12px] font-bold text-emerald-400">
+            <span className="text-[10px] uppercase font-mono" style={{ color: t.textMuted }}>Identified VASP Gateway</span>
+            <p className="text-[12px] font-bold text-emerald-500">
               {caseContext.vasps[0]?.name} ({caseContext.vasps[0]?.confidence}% Confidence)
             </p>
-            <p className="text-[10px] text-white/50">{caseContext.vasps[0]?.category}</p>
+            <p className="text-[10px]" style={{ color: t.textMuted }}>{caseContext.vasps[0]?.category}</p>
           </div>
 
           {/* Triggered Indicators */}
           <div className="space-y-2">
-            <span className="text-[10px] text-white/40 uppercase font-mono font-bold">Triggered Fraud Indicators</span>
+            <span className="text-[10px] uppercase font-mono font-bold" style={{ color: t.textMuted }}>Triggered Fraud Indicators</span>
             <div className="space-y-1.5">
               {caseContext.factors.slice(0, 3).map((f, i) => (
-                <div key={i} className="text-[11px] text-white/70 flex items-start gap-1.5">
-                  <span className="text-red-400">⚠</span>
+                <div key={i} className="text-[11px] flex items-start gap-1.5" style={{ color: t.textSub }}>
+                  <span className="text-red-500 font-bold">⚠</span>
                   <span>{f}</span>
                 </div>
               ))}
@@ -440,10 +440,10 @@ export default function AIInvestigator({ caseId, onBack }: AIInvestigatorProps) 
                   VAJRA Forensic AI Copilot
                 </div>
 
-                <h2 className="text-[24px] md:text-[28px] font-bold text-white tracking-wide mb-1" style={{ fontFamily: "'Rajdhani', sans-serif" }}>
+                <h2 className="text-[24px] md:text-[28px] font-bold tracking-wide mb-1" style={{ fontFamily: "'Rajdhani', sans-serif", color: t.text }}>
                   Welcome, Officer
                 </h2>
-                <p className="text-[12px] md:text-[13px] text-white/60 leading-relaxed mb-6 max-w-lg">
+                <p className="text-[12px] md:text-[13px] leading-relaxed mb-6 max-w-lg" style={{ color: t.textSub }}>
                   Ask anything about case <span className="text-[#00f2fe] font-mono font-semibold">{caseId}</span>. The Copilot is equipped with real-time on-chain graph analysis, 6D Risk DNA, and VASP subpoena intelligence.
                 </p>
 
@@ -461,12 +461,12 @@ export default function AIInvestigator({ caseId, onBack }: AIInvestigatorProps) 
                     >
                       <div className="flex items-center gap-2.5 mb-1">
                         <span className="text-xl">{card.icon}</span>
-                        <span className="text-[13px] font-bold text-white group-hover:text-[#00f2fe] transition-colors"
-                              style={{ fontFamily: "'Rajdhani', sans-serif" }}>
+                        <span className="text-[13px] font-bold group-hover:text-[#00f2fe] transition-colors"
+                              style={{ fontFamily: "'Rajdhani', sans-serif", color: t.text }}>
                           {card.title}
                         </span>
                       </div>
-                      <p className="text-[11px] text-white/50 leading-snug">
+                      <p className="text-[11px] leading-snug" style={{ color: t.textMuted }}>
                         {card.subtitle}
                       </p>
                     </button>
@@ -475,52 +475,62 @@ export default function AIInvestigator({ caseId, onBack }: AIInvestigatorProps) 
               </div>
             ) : (
               /* Render Active Chat Messages */
-              messages.map((m) => (
-                <div key={m.id} className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
-                  <div className="max-w-[90%] md:max-w-[80%] rounded-2xl p-4 md:p-5 space-y-2 shadow-md"
-                       style={{
-                         background: m.role === 'user' ? '#1e5fff' : t.card,
-                         border: `1px solid ${m.role === 'user' ? '#3b82f6' : t.border}`,
-                         color: '#fff',
-                       }}>
-                    <div className="flex items-center justify-between text-[11px] text-white/50 mb-1 border-b border-white/10 pb-1.5">
-                      <span className="font-bold uppercase font-mono flex items-center gap-1.5 text-white/90">
-                        {m.role === 'user' ? (
-                          <>
-                            <svg className="w-3.5 h-3.5 text-blue-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                            </svg>
-                            Investigator
-                          </>
-                        ) : (
-                          <>
-                            <svg className="w-3.5 h-3.5 text-[#00f2fe]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                            </svg>
-                            VAJRA AI Copilot
-                          </>
-                        )}
-                      </span>
-                      <span className="font-mono text-[10px]">{m.timestamp}</span>
-                    </div>
-                    <div className="text-[13px] leading-relaxed whitespace-pre-wrap font-sans">
-                      {m.content || (m.isStreaming ? (
-                        <span className="inline-flex items-center gap-2 text-[#00f2fe] font-mono text-[12px]">
-                          <span className="w-2 h-2 rounded-full bg-[#00f2fe] animate-ping" />
-                          Analyzing forensic graph and synthesizing intelligence...
+              messages.map((m) => {
+                const isUser = m.role === 'user';
+                return (
+                  <div key={m.id} className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}>
+                    <div className="max-w-[90%] md:max-w-[80%] rounded-2xl p-4 md:p-5 space-y-2 shadow-md"
+                         style={{
+                           background: isUser ? '#1e5fff' : t.card,
+                           border: `1px solid ${isUser ? '#3b82f6' : t.border}`,
+                           color: isUser ? '#ffffff' : t.text,
+                         }}>
+                      <div className="flex items-center justify-between text-[11px] mb-1 pb-1.5"
+                           style={{
+                             borderBottom: `1px solid ${isUser ? 'rgba(255,255,255,0.2)' : t.border}`,
+                             color: isUser ? 'rgba(255,255,255,0.8)' : t.textMuted,
+                           }}>
+                        <span className="font-bold uppercase font-mono flex items-center gap-1.5"
+                              style={{ color: isUser ? '#ffffff' : t.text }}>
+                          {isUser ? (
+                            <>
+                              <svg className="w-3.5 h-3.5 text-blue-100" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                              </svg>
+                              Investigator
+                            </>
+                          ) : (
+                            <>
+                              <svg className="w-3.5 h-3.5 text-[#00f2fe]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                              </svg>
+                              VAJRA AI Copilot
+                            </>
+                          )}
                         </span>
-                      ) : '')}
+                        <span className="font-mono text-[10px]">{m.timestamp}</span>
+                      </div>
+                      <div className="text-[13px] leading-relaxed whitespace-pre-wrap font-sans"
+                           style={{ color: isUser ? '#ffffff' : t.text }}>
+                        {m.content || (m.isStreaming ? (
+                          <span className="inline-flex items-center gap-2 text-[#00f2fe] font-mono text-[12px]">
+                            <span className="w-2 h-2 rounded-full bg-[#00f2fe] animate-ping" />
+                            Analyzing forensic graph and synthesizing intelligence...
+                          </span>
+                        ) : '')}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
             <div ref={bottomRef} />
           </div>
 
           {/* Input Box */}
           <div className="p-4 sm:px-6 md:px-8" style={{ background: t.nav, borderTop: `1px solid ${t.border}` }}>
-            <div className="max-w-4xl mx-auto flex items-center gap-2 rounded-2xl p-2" style={{ background: t.inputBg, border: `1px solid ${t.border}` }}>
+            <div className="max-w-4xl mx-auto flex items-center gap-2 rounded-2xl p-2 shadow-sm"
+                 style={{ background: t.card2, border: `1px solid ${t.border}` }}>
               <input
                 type="text"
                 value={input}
@@ -528,7 +538,8 @@ export default function AIInvestigator({ caseId, onBack }: AIInvestigatorProps) 
                 onKeyDown={(e) => { if (e.key === 'Enter') handleSend(); }}
                 placeholder="Ask about fund flow, Risk DNA, legal notices, VASP subpoenas..."
                 disabled={isStreaming}
-                className="flex-1 bg-transparent px-3 text-[14px] text-white outline-none placeholder:text-white/30"
+                className="flex-1 bg-transparent px-3 text-[14px] outline-none"
+                style={{ color: t.text }}
               />
               <button
                 onClick={() => handleSend()}

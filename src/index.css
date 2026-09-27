@@ -198,32 +198,66 @@
   transition: background-color 0.25s ease;
 }
 
-/* ── Light mode: fix white-opacity text classes on icons and labels ── */
+[data-theme="light"] body,
+[data-theme="light"] #root {
+  background-color: #f1f5f9;
+}
+
+/* ── Light mode: high-contrast text adaptations ── */
+[data-theme="light"] .text-white:not(button):not(.text-white-force):not([class*="bg-blue"]):not([class*="bg-red"]):not([class*="bg-emerald"]):not([class*="bg-amber"]):not([class*="from-"]):not([class*="to-"]) {
+  color: #0f172a;
+}
+[data-theme="light"] .text-white\/90 { color: #0f172a !important; }
+[data-theme="light"] .text-white\/85 { color: #1e293b !important; }
+[data-theme="light"] .text-white\/80 { color: #1e293b !important; }
+[data-theme="light"] .text-white\/75 { color: #334155 !important; }
 [data-theme="light"] .text-white\/70,
 [data-theme="light"] .text-white\/65,
-[data-theme="light"] .text-white\/60 { color: rgba(26,32,53,0.60) !important; }
+[data-theme="light"] .text-white\/60 { color: #334155 !important; }
 
 [data-theme="light"] .text-white\/55,
 [data-theme="light"] .text-white\/50,
-[data-theme="light"] .text-white\/45 { color: rgba(26,32,53,0.52) !important; }
+[data-theme="light"] .text-white\/45 { color: #475569 !important; }
 
 [data-theme="light"] .text-white\/40,
-[data-theme="light"] .text-white\/35 { color: rgba(26,32,53,0.40) !important; }
+[data-theme="light"] .text-white\/35 { color: #64748b !important; }
 
 [data-theme="light"] .text-white\/30,
-[data-theme="light"] .text-white\/25 { color: rgba(26,32,53,0.30) !important; }
+[data-theme="light"] .text-white\/25 { color: #94a3b8 !important; }
 
 [data-theme="light"] .text-white\/20,
-[data-theme="light"] .text-white\/15 { color: rgba(26,32,53,0.18) !important; }
+[data-theme="light"] .text-white\/15,
+[data-theme="light"] .text-white\/10 { color: #cbd5e1 !important; }
 
-/* Pure white text that sits inside colored/gradient containers should stay white —
-   only non-colored-bg contexts need the dark override. We handle this with the
-   exception: blue/gradient/brand button text stays white via their explicit style prop. */
+/* ── Light mode: dividers, borders & backgrounds ── */
+[data-theme="light"] .border-white\/5,
+[data-theme="light"] .border-white\/10,
+[data-theme="light"] .border-white\/15,
+[data-theme="light"] .border-white\/20 {
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+[data-theme="light"] .bg-white\/5 {
+  background-color: rgba(0, 0, 0, 0.03) !important;
+}
+[data-theme="light"] .bg-white\/10 {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+/* ── Light mode: inputs & textareas ── */
+[data-theme="light"] input,
+[data-theme="light"] textarea,
+[data-theme="light"] select {
+  color: #0f172a !important;
+}
+[data-theme="light"] input::placeholder,
+[data-theme="light"] textarea::placeholder {
+  color: #94a3b8 !important;
+}
 
 /* ── Light mode: buttons with residual white-opacity backgrounds ── */
 [data-theme="light"] button[style*="rgba(255, 255, 255, 0.0"],
 [data-theme="light"] button[style*="rgba(255,255,255,0.0"] {
-  background-color: rgba(0,0,0,0.06) !important;
+  background-color: rgba(0,0,0,0.05) !important;
 }
 [data-theme="light"] button[style*="rgba(255, 255, 255, 0.1"],
 [data-theme="light"] button[style*="rgba(255,255,255,0.1"] {
