@@ -62,21 +62,23 @@ export default function DesktopNav({
                 className="text-[17px] font-bold tracking-wider"
                 style={{ fontFamily: "'Rajdhani', sans-serif", color: t.text }}
               >
-                VAJRA <span className="text-[#00f2fe]">CRYPTOTRACE</span>
+                VAJRA <span style={{ color: t.mode === 'light' ? '#1d4ed8' : '#00f2fe' }}>CRYPTOTRACE</span>
               </span>
-              <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-blue-500/10 text-cyan-400 border border-cyan-500/20">
+              <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded ${
+                t.mode === 'light' ? 'bg-blue-100 text-blue-800 border border-blue-200' : 'bg-blue-500/10 text-cyan-400 border border-cyan-500/20'
+              }`}>
                 LEA v1.0
               </span>
             </div>
-            <p className="text-[10px] text-white/40" style={{ color: t.textMuted }}>
+            <p className="text-[10px]" style={{ color: t.textMuted }}>
               Cyber Forensics Command Center
             </p>
           </div>
         </button>
 
         {/* Live Multi-Chain Node Badge */}
-        <div className="hidden lg:flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[11px] font-medium font-mono">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+        <div className="hidden lg:flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[11px] font-medium font-mono">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
           Multi-Chain RPCs Live
         </div>
       </div>
@@ -93,11 +95,17 @@ export default function DesktopNav({
             <button
               key={tab.id}
               onClick={() => handleNavClick(tab.id)}
-              className="relative px-3.5 py-2 rounded-xl text-[13px] font-medium transition-all duration-150 flex items-center gap-1.5 active:scale-95"
+              className="relative px-3.5 py-2 rounded-xl text-[13px] font-medium transition-all duration-150 flex items-center gap-1.5 active:scale-95 shadow-sm"
               style={{
-                background: isSelected ? 'rgba(0, 242, 254, 0.12)' : 'transparent',
-                color: isSelected ? '#00f2fe' : t.textSub,
-                border: isSelected ? '1px solid rgba(0, 242, 254, 0.25)' : '1px solid transparent',
+                background: isSelected
+                  ? (t.mode === 'light' ? 'rgba(29, 78, 216, 0.12)' : 'rgba(0, 242, 254, 0.12)')
+                  : 'transparent',
+                color: isSelected
+                  ? (t.mode === 'light' ? '#1d4ed8' : '#00f2fe')
+                  : t.textSub,
+                border: isSelected
+                  ? (t.mode === 'light' ? '1px solid rgba(29, 78, 216, 0.35)' : '1px solid rgba(0, 242, 254, 0.25)')
+                  : '1px solid transparent',
               }}
             >
               <span>{tab.icon}</span>
@@ -119,7 +127,7 @@ export default function DesktopNav({
         {/* ⌘K Quick Search Trigger */}
         <button
           onClick={onOpenSearch}
-          className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl text-[12px] transition-all duration-150 active:scale-95 hover:border-cyan-500/40"
+          className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl text-[12px] transition-all duration-150 active:scale-95"
           style={{
             background: t.card2,
             border: `1px solid ${t.border}`,
@@ -127,11 +135,13 @@ export default function DesktopNav({
           }}
           title="Search anything (Cmd+K / Ctrl+K)"
         >
-          <svg className="w-4 h-4 text-[#00f2fe]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-4 h-4" style={{ color: t.mode === 'light' ? '#1d4ed8' : '#00f2fe' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
           <span className="hidden xl:inline">Search cases, wallets...</span>
-          <span className="text-[10px] px-1.5 py-0.5 rounded font-mono font-bold bg-white/10 text-cyan-300">
+          <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono font-bold ${
+            t.mode === 'light' ? 'bg-slate-200 text-slate-700' : 'bg-white/10 text-cyan-300'
+          }`}>
             ⌘K
           </span>
         </button>
@@ -140,10 +150,12 @@ export default function DesktopNav({
         {caseId && (
           <button
             onClick={() => onOpenScreen('CASE_DETAIL')}
-            className="hidden xl:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-mono bg-blue-500/10 border border-blue-500/30 text-blue-300 hover:bg-blue-500/20 transition-all"
+            className={`hidden xl:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-mono transition-all ${
+              t.mode === 'light' ? 'bg-blue-50 border border-blue-200 text-blue-800 hover:bg-blue-100' : 'bg-blue-500/10 border border-blue-500/30 text-blue-300 hover:bg-blue-500/20'
+            }`}
             title="Jump to Active Case"
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+            <span className={`w-1.5 h-1.5 rounded-full ${t.mode === 'light' ? 'bg-blue-600' : 'bg-cyan-400'}`} />
             <span>{caseId}</span>
           </button>
         )}

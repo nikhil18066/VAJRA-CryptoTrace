@@ -64,7 +64,7 @@ export default function BottomNav({ active, onNavigate, alertCount = 3 }: Bottom
             key={tab.id}
             onClick={() => onNavigate(tab.id)}
             className="relative flex flex-col items-center gap-0.5 px-4 py-1 rounded-xl transition-all duration-200"
-            style={{ color: isActive ? '#00f2fe' : t.textMuted }}
+            style={{ color: isActive ? (t.mode === 'light' ? '#1d4ed8' : '#00f2fe') : t.textMuted }}
           >
             {tab.id === 'ALERTS' && alertCount > 0 && (
               <span className="absolute -top-0.5 right-2.5 w-4 h-4 bg-[#ff3d5a] text-white text-[9px] font-bold rounded-full flex items-center justify-center">
@@ -76,7 +76,7 @@ export default function BottomNav({ active, onNavigate, alertCount = 3 }: Bottom
             </div>
             <span className="text-[10px] font-medium">{tab.label}</span>
             {isActive && (
-              <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 rounded-full bg-[#00f2fe]" />
+              <span className={`absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 rounded-full ${t.mode === 'light' ? 'bg-blue-700' : 'bg-[#00f2fe]'}`} />
             )}
           </button>
         );

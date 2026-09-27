@@ -376,11 +376,11 @@ export default function FundFlowGraph({ nodes: propNodes, edges: propEdges, load
         <div className="flex gap-2 overflow-x-auto no-scrollbar flex-1">
           {FILTERS.map((f) => (
             <button key={f} onClick={() => setFilter(f)}
-                    className="px-3 py-1 rounded-full text-[11px] font-semibold transition-all duration-150 whitespace-nowrap active:scale-95"
+                    className="px-3.5 py-1.5 rounded-full text-[12px] font-semibold transition-all duration-150 whitespace-nowrap active:scale-95 shadow-sm"
                     style={{
-                      background: filter === f ? '#1e5fff' : t.inputBg,
-                      color:      filter === f ? '#fff'    : t.textSub,
-                      border:     filter === f ? '1px solid #1e5fff' : `1px solid ${t.border}`,
+                      background: filter === f ? (t.mode === 'light' ? '#1d4ed8' : '#1e5fff') : t.inputBg,
+                      color:      filter === f ? '#fff' : t.textSub,
+                      border:     filter === f ? `1px solid ${t.mode === 'light' ? '#1d4ed8' : '#1e5fff'}` : `1px solid ${t.border}`,
                     }}>
               {f === 'All' ? `All Transfers (${NODES.length})` :
                f === 'Large Transfers' ? `⚡ Large Transfers (${largeCount})` :
@@ -393,47 +393,82 @@ export default function FundFlowGraph({ nodes: propNodes, edges: propEdges, load
         </div>
 
         {/* Pan & Zoom Toolbar */}
-        <div className="flex items-center gap-1 bg-[#061224] border border-white/10 p-1 rounded-xl flex-shrink-0">
+        <div className="flex items-center gap-1 p-1 rounded-xl flex-shrink-0 shadow-sm"
+             style={{
+               background: t.mode === 'light' ? '#ffffff' : '#061224',
+               border: `1px solid ${t.border}`
+             }}>
           <button onClick={handleZoomIn} title="Zoom In"
-                  className="w-6 h-6 rounded-lg bg-white/5 text-cyan-300 hover:bg-cyan-500/20 font-bold text-xs flex items-center justify-center">
+                  className="w-6 h-6 rounded-lg font-bold text-xs flex items-center justify-center transition-colors"
+                  style={{
+                    background: t.mode === 'light' ? '#f1f5f9' : 'rgba(255,255,255,0.05)',
+                    color: t.mode === 'light' ? '#1d4ed8' : '#00f2fe'
+                  }}>
             +
           </button>
           <button onClick={handleZoomOut} title="Zoom Out"
-                  className="w-6 h-6 rounded-lg bg-white/5 text-cyan-300 hover:bg-cyan-500/20 font-bold text-xs flex items-center justify-center">
+                  className="w-6 h-6 rounded-lg font-bold text-xs flex items-center justify-center transition-colors"
+                  style={{
+                    background: t.mode === 'light' ? '#f1f5f9' : 'rgba(255,255,255,0.05)',
+                    color: t.mode === 'light' ? '#1d4ed8' : '#00f2fe'
+                  }}>
             -
           </button>
           <button onClick={handleResetZoom} title="Reset View"
-                  className="px-1.5 h-6 rounded-lg bg-white/5 text-[9px] font-mono text-white/60 hover:text-white flex items-center justify-center">
+                  className="px-1.5 h-6 rounded-lg text-[10px] font-mono flex items-center justify-center transition-colors font-bold"
+                  style={{
+                    background: t.mode === 'light' ? '#f1f5f9' : 'rgba(255,255,255,0.05)',
+                    color: t.mode === 'light' ? '#334155' : 'rgba(255,255,255,0.7)'
+                  }}>
             {Math.round(zoom * 100)}%
           </button>
         </div>
       </div>
 
       {/* Time Machine Playback Bar */}
-      <div className="mx-4 mb-2 p-2.5 rounded-xl bg-[#061224]/90 border border-white/10 flex items-center justify-between gap-3 text-[11px] font-mono shadow-sm">
+      <div className="mx-4 mb-2 p-2.5 rounded-xl flex items-center justify-between gap-3 text-[11px] font-mono shadow-sm"
+           style={{
+             background: t.mode === 'light' ? '#ffffff' : 'rgba(6, 18, 36, 0.95)',
+             border: `1px solid ${t.border}`
+           }}>
         <div className="flex items-center gap-2">
           <button onClick={() => {
             if (playbackStage >= 3 && !isPlaying) setPlaybackStage(0);
             setIsPlaying(!isPlaying);
           }}
-                  className="w-7 h-7 rounded-lg bg-cyan-500/20 text-cyan-400 font-bold flex items-center justify-center hover:bg-cyan-500/30 active:scale-95 transition-all">
+                  className="w-7 h-7 rounded-lg font-bold flex items-center justify-center active:scale-95 transition-all shadow-sm"
+                  style={{
+                    background: t.mode === 'light' ? 'rgba(29, 78, 216, 0.12)' : 'rgba(0, 242, 254, 0.18)',
+                    color: t.mode === 'light' ? '#1d4ed8' : '#00f2fe',
+                    border: `1px solid ${t.mode === 'light' ? 'rgba(29, 78, 216, 0.3)' : 'rgba(0, 242, 254, 0.3)'}`
+                  }}>
             {isPlaying ? '⏸' : '▶'}
           </button>
-          <span className="text-[#00f2fe] font-bold truncate">{currentStageInfo.time}</span>
+          <span className="font-bold truncate" style={{ color: t.mode === 'light' ? '#1d4ed8' : '#00f2fe' }}>
+            {currentStageInfo.time}
+          </span>
         </div>
 
         <div className="flex-1 max-w-[180px] sm:max-w-xs flex items-center gap-1.5">
           {TIMELINE_STAGES.map((s) => (
             <button key={s.stage} onClick={() => setPlaybackStage(s.stage)}
                     title={s.label}
-                    className={`h-2 flex-1 rounded-full transition-all ${playbackStage >= s.stage ? 'bg-[#00f2fe] shadow-[0_0_8px_rgba(0,242,254,0.7)]' : 'bg-white/10'}`} />
+                    className={`h-2 flex-1 rounded-full transition-all ${
+                      playbackStage >= s.stage
+                        ? (t.mode === 'light' ? 'bg-blue-700 shadow-[0_0_8px_rgba(29,78,216,0.5)]' : 'bg-[#00f2fe] shadow-[0_0_8px_rgba(0,242,254,0.7)]')
+                        : (t.mode === 'light' ? 'bg-slate-200' : 'bg-white/10')
+                    }`} />
           ))}
         </div>
 
         <div className="flex items-center gap-1">
           {([1, 2, 4] as const).map((spd) => (
             <button key={spd} onClick={() => setSpeed(spd)}
-                    className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${speed === spd ? 'bg-blue-600 text-white' : 'text-white/40 hover:text-white'}`}>
+                    className={`px-2 py-0.5 rounded text-[10px] font-bold transition-colors ${
+                      speed === spd
+                        ? (t.mode === 'light' ? 'bg-blue-700 text-white' : 'bg-blue-600 text-white')
+                        : (t.mode === 'light' ? 'text-slate-500 hover:text-slate-800' : 'text-white/40 hover:text-white')
+                    }`}>
               {spd}x
             </button>
           ))}
@@ -673,118 +708,183 @@ export default function FundFlowGraph({ nodes: propNodes, edges: propEdges, load
           </g>
         </svg>
 
-        {/* Selected Node Inspector / What-If Simulator Panel */}
+        {/* Selected Node Inspector / What-If Simulator Panel (Right-Side Drawer) */}
         {selectedNode && (
-          <div className="absolute bottom-3 left-3 right-3 rounded-xl p-3 space-y-2 animate-fadeIn z-30 max-h-[220px] overflow-y-auto no-scrollbar"
-               style={{ background: 'rgba(3,8,20,0.97)', border: `1px solid ${selectedStyle.stroke}`, backdropFilter: 'blur(14px)', boxShadow: '0 8px 32px rgba(0,0,0,0.9)' }}>
-            <div className="flex items-center justify-between">
-              <div className="min-w-0 flex-1 mr-2">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-[13px] font-bold text-white truncate max-w-[200px]" style={{ fontFamily: "'Rajdhani', sans-serif" }}>
-                    {selectedNode.label}
-                  </span>
-                  <span className="text-[9px] font-mono px-2 py-0.5 rounded-full uppercase font-bold"
-                        style={{
-                          background: `${selectedStyle.stroke}20`,
-                          color: selectedStyle.stroke,
-                          border: `1px solid ${selectedStyle.stroke}40`,
-                        }}>
-                    {selectedNode.type}
-                  </span>
-                  {selectedNode.riskScore !== undefined && (
-                    <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-white/10 text-cyan-300 font-bold">
-                      RISK: {selectedNode.riskScore}/100
+          <div className="absolute top-3 right-3 bottom-3 z-30 w-80 sm:w-96 max-w-[calc(100%-24px)] rounded-2xl p-4 overflow-y-auto no-scrollbar flex flex-col justify-between shadow-2xl animate-fadeIn"
+               style={{
+                 background: t.mode === 'light' ? 'rgba(255, 255, 255, 0.98)' : 'rgba(3, 10, 24, 0.97)',
+                 border: `1.5px solid ${t.mode === 'light' ? '#94a3b8' : selectedStyle.stroke}`,
+                 backdropFilter: 'blur(16px)',
+                 boxShadow: t.mode === 'light' ? '0 12px 36px rgba(0,0,0,0.18)' : '0 12px 40px rgba(0,0,0,0.95)'
+               }}>
+            
+            {/* Top: Node Identity & Details */}
+            <div className="space-y-3">
+              {/* Header row with title & close button */}
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[15px] sm:text-[17px] font-bold truncate max-w-[190px]"
+                          style={{
+                            fontFamily: "'Rajdhani', sans-serif",
+                            color: t.mode === 'light' ? '#0f172a' : '#ffffff'
+                          }}>
+                      {selectedNode.label}
                     </span>
-                  )}
-                  {selectedNode.totalValue && (
-                    <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 font-bold">
-                      VOL: {selectedNode.totalValue}
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-md uppercase font-bold flex-shrink-0"
+                          style={{
+                            background: `${selectedStyle.stroke}20`,
+                            color: selectedStyle.stroke,
+                            border: `1px solid ${selectedStyle.stroke}50`,
+                          }}>
+                      {selectedNode.type}
                     </span>
-                  )}
+                  </div>
+                  
+                  {/* Badges: Risk Score & Volume */}
+                  <div className="flex items-center gap-2 mt-2 flex-wrap">
+                    {selectedNode.riskScore !== undefined && (
+                      <span className="text-[11px] font-mono px-2.5 py-1 rounded-lg font-bold"
+                            style={{
+                              background: selectedNode.riskScore >= 75 ? 'rgba(255,61,90,0.15)' : 'rgba(30,95,255,0.15)',
+                              color: selectedNode.riskScore >= 75 ? '#ff3d5a' : (t.mode === 'light' ? '#1d4ed8' : '#38bdf8'),
+                              border: `1px solid ${selectedNode.riskScore >= 75 ? 'rgba(255,61,90,0.3)' : 'rgba(30,95,255,0.3)'}`
+                            }}>
+                        RISK: {selectedNode.riskScore}/100
+                      </span>
+                    )}
+                    {selectedNode.totalValue && (
+                      <span className="text-[11px] font-mono px-2.5 py-1 rounded-lg font-bold"
+                            style={{
+                              background: 'rgba(245,166,35,0.15)',
+                              color: '#f5a623',
+                              border: '1px solid rgba(245,166,35,0.3)'
+                            }}>
+                        VOL: {selectedNode.totalValue}
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <p className="text-[10px] font-mono text-cyan-400/80 mt-0.5 select-all truncate">
-                  {selectedNode.fullAddr || selectedNode.addr}
-                </p>
+
+                <button onClick={() => setSelected(null)}
+                        className="w-7 h-7 rounded-lg flex items-center justify-center text-sm font-bold transition-all active:scale-90 flex-shrink-0"
+                        style={{
+                          background: t.mode === 'light' ? '#f1f5f9' : 'rgba(255,255,255,0.1)',
+                          color: t.mode === 'light' ? '#475569' : '#ffffff',
+                          border: `1px solid ${t.mode === 'light' ? '#cbd5e1' : 'rgba(255,255,255,0.15)'}`
+                        }}>
+                  ✕
+                </button>
               </div>
-              <button onClick={() => setSelected(null)} className="text-white/50 hover:text-white text-sm px-2.5 py-1 rounded-lg bg-white/5 flex-shrink-0">
-                ✕
-              </button>
+
+              {/* Address / Wallet hash container */}
+              <div className="p-2.5 rounded-xl text-[12px] font-mono select-all break-all"
+                   style={{
+                     background: t.mode === 'light' ? '#f8fafc' : 'rgba(0,0,0,0.4)',
+                     color: t.mode === 'light' ? '#0369a1' : '#38bdf8',
+                     border: `1px solid ${t.mode === 'light' ? '#e2e8f0' : 'rgba(255,255,255,0.1)'}`
+                   }}>
+                {selectedNode.fullAddr || selectedNode.addr}
+              </div>
             </div>
 
-            {/* Interactive "What-If" Simulator Risk Re-propagation with All 8 Node Types and Colors */}
-            <div className="pt-2 border-t border-white/10 space-y-1.5">
-              <div className="flex items-center justify-between text-[10px] font-mono">
-                <span className="text-white/50 font-bold uppercase">What-If Forensic Simulation:</span>
+            {/* Bottom: Interactive "What-If" Forensic Simulation Grid */}
+            <div className="pt-3 mt-3 border-t space-y-2"
+                 style={{ borderColor: t.mode === 'light' ? '#e2e8f0' : 'rgba(255,255,255,0.12)' }}>
+              <div className="flex items-center justify-between text-[11px] font-mono">
+                <span className="font-bold uppercase tracking-wider"
+                      style={{ color: t.mode === 'light' ? '#475569' : 'rgba(255,255,255,0.6)' }}>
+                  What-If Forensic Simulation:
+                </span>
                 {nodeOverrides[selectedNode.id] && (
                   <button onClick={() => handleSimulateTag(selectedNode.id, 'RESET')}
-                          className="text-cyan-400 hover:underline text-[10px]">
+                          className="font-bold hover:underline text-[11px]"
+                          style={{ color: t.mode === 'light' ? '#1d4ed8' : '#00f2fe' }}>
                     Reset to Default
                   </button>
                 )}
               </div>
-              <div className="flex items-center gap-1.5 text-[9px] font-mono flex-wrap">
+
+              {/* 2-Column Responsive Simulation Grid with readable text at 80% */}
+              <div className="grid grid-cols-2 gap-2 text-[11px] sm:text-[12px] font-mono">
                 {/* 1. Sanctioned Mixer */}
                 <button onClick={() => handleSimulateTag(selectedNode.id, 'mixer')}
-                        className={`px-2 py-1 rounded-lg border flex items-center gap-1 active:scale-95 transition-all ${selectedNode.type === 'mixer' ? 'ring-1 ring-pink-400 font-bold' : ''}`}
-                        style={{ background: 'rgba(236,72,153,0.18)', color: '#ec4899', borderColor: 'rgba(236,72,153,0.4)' }}>
-                  <span className="w-2 h-2 rounded-full bg-[#ec4899]" />
-                  + Mixer (+45)
+                        className={`px-2.5 py-2 rounded-xl border flex items-center gap-1.5 active:scale-95 transition-all ${selectedNode.type === 'mixer' ? 'ring-2 ring-pink-500 font-bold scale-[1.02]' : ''}`}
+                        style={{ background: 'rgba(236,72,153,0.18)', color: '#ec4899', borderColor: 'rgba(236,72,153,0.45)' }}>
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#ec4899] flex-shrink-0" />
+                  <span className="truncate">+ Mixer (+45)</span>
                 </button>
 
                 {/* 2. Syndicate Collector */}
                 <button onClick={() => handleSimulateTag(selectedNode.id, 'collector')}
-                        className={`px-2 py-1 rounded-lg border flex items-center gap-1 active:scale-95 transition-all ${selectedNode.type === 'collector' ? 'ring-1 ring-red-400 font-bold' : ''}`}
-                        style={{ background: 'rgba(255,61,90,0.18)', color: '#ff3d5a', borderColor: 'rgba(255,61,90,0.4)' }}>
-                  <span className="w-2 h-2 rounded-full bg-[#ff3d5a]" />
-                  + Collector (+40)
+                        className={`px-2.5 py-2 rounded-xl border flex items-center gap-1.5 active:scale-95 transition-all ${selectedNode.type === 'collector' ? 'ring-2 ring-red-500 font-bold scale-[1.02]' : ''}`}
+                        style={{ background: 'rgba(255,61,90,0.18)', color: '#ff3d5a', borderColor: 'rgba(255,61,90,0.45)' }}>
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#ff3d5a] flex-shrink-0" />
+                  <span className="truncate">+ Collector (+40)</span>
                 </button>
 
                 {/* 3. Pass-Through Mule */}
                 <button onClick={() => handleSimulateTag(selectedNode.id, 'mule')}
-                        className={`px-2 py-1 rounded-lg border flex items-center gap-1 active:scale-95 transition-all ${selectedNode.type === 'mule' ? 'ring-1 ring-amber-400 font-bold' : ''}`}
-                        style={{ background: 'rgba(245,166,35,0.18)', color: '#f5a623', borderColor: 'rgba(245,166,35,0.4)' }}>
-                  <span className="w-2 h-2 rounded-full bg-[#f5a623]" />
-                  + Mule (+35)
+                        className={`px-2.5 py-2 rounded-xl border flex items-center gap-1.5 active:scale-95 transition-all ${selectedNode.type === 'mule' ? 'ring-2 ring-amber-500 font-bold scale-[1.02]' : ''}`}
+                        style={{ background: 'rgba(245,166,35,0.18)', color: '#f5a623', borderColor: 'rgba(245,166,35,0.45)' }}>
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#f5a623] flex-shrink-0" />
+                  <span className="truncate">+ Mule (+35)</span>
                 </button>
 
                 {/* 4. Suspect Subject */}
                 <button onClick={() => handleSimulateTag(selectedNode.id, 'suspect')}
-                        className={`px-2 py-1 rounded-lg border flex items-center gap-1 active:scale-95 transition-all ${selectedNode.type === 'suspect' ? 'ring-1 ring-cyan-400 font-bold' : ''}`}
-                        style={{ background: 'rgba(0,242,254,0.18)', color: '#00f2fe', borderColor: 'rgba(0,242,254,0.4)' }}>
-                  <span className="w-2 h-2 rounded-full bg-[#00f2fe]" />
-                  + Suspect (+30)
+                        className={`px-2.5 py-2 rounded-xl border flex items-center gap-1.5 active:scale-95 transition-all ${selectedNode.type === 'suspect' ? 'ring-2 ring-cyan-500 font-bold scale-[1.02]' : ''}`}
+                        style={{
+                          background: t.mode === 'light' ? 'rgba(2,132,199,0.15)' : 'rgba(0,242,254,0.18)',
+                          color: t.mode === 'light' ? '#0284c7' : '#00f2fe',
+                          borderColor: t.mode === 'light' ? 'rgba(2,132,199,0.45)' : 'rgba(0,242,254,0.45)'
+                        }}>
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#00f2fe] flex-shrink-0" />
+                  <span className="truncate">+ Suspect (+30)</span>
                 </button>
 
                 {/* 5. Intermediary Transit */}
                 <button onClick={() => handleSimulateTag(selectedNode.id, 'intermediary')}
-                        className={`px-2 py-1 rounded-lg border flex items-center gap-1 active:scale-95 transition-all ${selectedNode.type === 'intermediary' ? 'ring-1 ring-sky-400 font-bold' : ''}`}
-                        style={{ background: 'rgba(56,189,248,0.18)', color: '#38bdf8', borderColor: 'rgba(56,189,248,0.4)' }}>
-                  <span className="w-2 h-2 rounded-full bg-[#38bdf8]" />
-                  + Intermediary (+15)
+                        className={`px-2.5 py-2 rounded-xl border flex items-center gap-1.5 active:scale-95 transition-all ${selectedNode.type === 'intermediary' ? 'ring-2 ring-sky-500 font-bold scale-[1.02]' : ''}`}
+                        style={{
+                          background: t.mode === 'light' ? 'rgba(3,105,161,0.15)' : 'rgba(56,189,248,0.18)',
+                          color: t.mode === 'light' ? '#0369a1' : '#38bdf8',
+                          borderColor: t.mode === 'light' ? 'rgba(3,105,161,0.45)' : 'rgba(56,189,248,0.45)'
+                        }}>
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#38bdf8] flex-shrink-0" />
+                  <span className="truncate">+ Intermed (+15)</span>
                 </button>
 
                 {/* 6. Smart Contract */}
                 <button onClick={() => handleSimulateTag(selectedNode.id, 'contract')}
-                        className={`px-2 py-1 rounded-lg border flex items-center gap-1 active:scale-95 transition-all ${selectedNode.type === 'contract' ? 'ring-1 ring-purple-400 font-bold' : ''}`}
-                        style={{ background: 'rgba(168,85,247,0.18)', color: '#a855f7', borderColor: 'rgba(168,85,247,0.4)' }}>
-                  <span className="w-2 h-2 rounded-full bg-[#a855f7]" />
-                  Contract (0)
+                        className={`px-2.5 py-2 rounded-xl border flex items-center gap-1.5 active:scale-95 transition-all ${selectedNode.type === 'contract' ? 'ring-2 ring-purple-500 font-bold scale-[1.02]' : ''}`}
+                        style={{ background: 'rgba(168,85,247,0.18)', color: '#a855f7', borderColor: 'rgba(168,85,247,0.45)' }}>
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#a855f7] flex-shrink-0" />
+                  <span className="truncate">Contract (0)</span>
                 </button>
 
                 {/* 7. Compliant VASP Exchange */}
                 <button onClick={() => handleSimulateTag(selectedNode.id, 'exchange')}
-                        className={`px-2 py-1 rounded-lg border flex items-center gap-1 active:scale-95 transition-all ${selectedNode.type === 'exchange' ? 'ring-1 ring-emerald-400 font-bold' : ''}`}
-                        style={{ background: 'rgba(0,214,143,0.18)', color: '#00d68f', borderColor: 'rgba(0,214,143,0.4)' }}>
-                  <span className="w-2 h-2 rounded-full bg-[#00d68f]" />
-                  - VASP (-35)
+                        className={`px-2.5 py-2 rounded-xl border flex items-center gap-1.5 active:scale-95 transition-all ${selectedNode.type === 'exchange' ? 'ring-2 ring-emerald-500 font-bold scale-[1.02]' : ''}`}
+                        style={{
+                          background: t.mode === 'light' ? 'rgba(5,150,105,0.15)' : 'rgba(0,214,143,0.18)',
+                          color: t.mode === 'light' ? '#059669' : '#00d68f',
+                          borderColor: t.mode === 'light' ? 'rgba(5,150,105,0.45)' : 'rgba(0,214,143,0.45)'
+                        }}>
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#00d68f] flex-shrink-0" />
+                  <span className="truncate">- VASP (-35)</span>
                 </button>
 
                 {/* 8. Verified Victim */}
                 <button onClick={() => handleSimulateTag(selectedNode.id, 'victim')}
-                        className={`px-2 py-1 rounded-lg border flex items-center gap-1 active:scale-95 transition-all ${selectedNode.type === 'victim' ? 'ring-1 ring-blue-400 font-bold' : ''}`}
-                        style={{ background: 'rgba(96,165,250,0.18)', color: '#60a5fa', borderColor: 'rgba(96,165,250,0.4)' }}>
-                  <span className="w-2 h-2 rounded-full bg-[#60a5fa]" />
-                  - Victim (-40)
+                        className={`px-2.5 py-2 rounded-xl border flex items-center gap-1.5 active:scale-95 transition-all ${selectedNode.type === 'victim' ? 'ring-2 ring-blue-600 font-bold scale-[1.02]' : ''}`}
+                        style={{
+                          background: t.mode === 'light' ? 'rgba(29,78,216,0.15)' : 'rgba(96,165,250,0.18)',
+                          color: t.mode === 'light' ? '#1d4ed8' : '#60a5fa',
+                          borderColor: t.mode === 'light' ? 'rgba(29,78,216,0.45)' : 'rgba(96,165,250,0.45)'
+                        }}>
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#60a5fa] flex-shrink-0" />
+                  <span className="truncate">- Victim (-40)</span>
                 </button>
               </div>
             </div>

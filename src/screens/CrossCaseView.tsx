@@ -149,17 +149,23 @@ export default function CrossCaseView({ onBack, onOpenCase }: CrossCaseViewProps
                     const p2 = getNodePos(c.to);
                     const isHigh = c.weight >= 3;
                     const isSelected = selectedNode === c.from || selectedNode === c.to;
+                    const edgeStroke = isSelected
+                      ? (t.mode === 'light' ? '#1d4ed8' : '#00f2fe')
+                      : isHigh
+                      ? 'rgba(255,61,90,0.6)'
+                      : t.mode === 'light' ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.18)';
+
                     return (
                       <g key={i}>
                         <line
                           x1={p1.x} y1={p1.y}
                           x2={p2.x} y2={p2.y}
-                          stroke={isSelected ? '#00f2fe' : isHigh ? 'rgba(255,61,90,0.6)' : t.mode === 'light' ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.18)'}
+                          stroke={edgeStroke}
                           strokeWidth={isSelected ? 2 : isHigh ? 1.5 : 1}
                           strokeDasharray={isHigh ? undefined : '3,3'}
                         />
                         {isSelected && (
-                          <circle r="3" fill="#00f2fe">
+                          <circle r="3" fill={t.mode === 'light' ? '#1d4ed8' : '#00f2fe'}>
                             <animateMotion
                               path={`M${p1.x},${p1.y} L${p2.x},${p2.y}`}
                               dur="2s"
@@ -181,7 +187,7 @@ export default function CrossCaseView({ onBack, onOpenCase }: CrossCaseViewProps
                          className="cursor-pointer"
                          onClick={() => setSelectedNode(isSel ? null : c.id)}>
                         {isSel && (
-                          <circle r="26" fill="none" stroke="#00f2fe" strokeWidth="1.5"
+                          <circle r="26" fill="none" stroke={t.mode === 'light' ? '#1d4ed8' : '#00f2fe'} strokeWidth="2"
                                   strokeDasharray="4,2" className="anim-spin" />
                         )}
                         <circle r="20" fill={col.fill} stroke={col.stroke} strokeWidth="1.5" />
@@ -342,7 +348,7 @@ export default function CrossCaseView({ onBack, onOpenCase }: CrossCaseViewProps
                               }}>
                           {c.riskScore}/100
                         </span>
-                        <span className="text-[11px] text-[#00f2fe] font-semibold">View →</span>
+                        <span className="text-[11px] font-semibold" style={{ color: t.mode === 'light' ? '#1d4ed8' : '#00f2fe' }}>View →</span>
                       </div>
                     </button>
                   ))}

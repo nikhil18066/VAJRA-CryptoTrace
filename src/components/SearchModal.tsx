@@ -210,11 +210,11 @@ export default function SearchModal({ onClose, onOpenCase, onStartAnalysis }: Se
             <button
               key={f.id}
               onClick={() => setActiveFilter(f.id as any)}
-              className="px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap"
+              className="px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap active:scale-95 shadow-sm"
               style={{
-                background: activeFilter === f.id ? '#1e5fff' : t.inputBg,
+                background: activeFilter === f.id ? (t.mode === 'light' ? '#1d4ed8' : '#1e5fff') : t.inputBg,
                 color: activeFilter === f.id ? '#fff' : t.textSub,
-                border: `1px solid ${activeFilter === f.id ? '#1e5fff' : t.border}`,
+                border: `1px solid ${activeFilter === f.id ? (t.mode === 'light' ? '#1d4ed8' : '#1e5fff') : t.border}`,
               }}
             >
               {f.label}

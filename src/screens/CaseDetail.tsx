@@ -40,9 +40,12 @@ function DataRow({ label, value, mono = false, accent = false, t }:
   return (
     <div className="flex items-center justify-between py-2.5"
          style={{ borderBottom: `1px solid ${t.border}` }}>
-      <span className="text-[12px] text-white/40" style={{ color: t.textSub }}>{label}</span>
-      <span className={`text-[12px] font-medium ${accent ? 'text-[#00f2fe]' : 'text-white'}`}
-            style={{ fontFamily: mono ? "'Inter', monospace" : undefined, color: accent ? '#00f2fe' : t.text }}>
+      <span className="text-[12px]" style={{ color: t.textSub }}>{label}</span>
+      <span className="text-[12px] font-medium"
+            style={{
+              fontFamily: mono ? "'Inter', monospace" : undefined,
+              color: accent ? (t.mode === 'light' ? '#1d4ed8' : '#00f2fe') : t.text
+            }}>
         {value}
       </span>
     </div>
@@ -144,7 +147,7 @@ function WalletTab({ data, t }: { data: ReturnType<typeof analysisStore.get>; t:
             <div className="rounded-2xl p-4 space-y-2.5" style={{ background: t.card, border: `1px solid ${t.border}` }}>
               <div className="flex items-center justify-between pb-2" style={{ borderBottom: `1px solid ${t.border}` }}>
                 <span className="text-[12px]" style={{ color: t.textSub }}>Signature Hash</span>
-                <span className="text-[11px] font-mono text-[#00f2fe] font-bold">{fp.fingerprintHash}</span>
+                <span className="text-[11px] font-mono font-bold" style={{ color: t.mode === 'light' ? '#1d4ed8' : '#00f2fe' }}>{fp.fingerprintHash}</span>
               </div>
               <DataRow label="Transaction Velocity" value={fp.velocityCategory} t={t} />
               <DataRow label="Fan-Out Dispersion" value={fp.fanOutCategory} t={t} />
@@ -182,11 +185,11 @@ function WalletTab({ data, t }: { data: ReturnType<typeof analysisStore.get>; t:
                     {c.commonControlConfidence}% CONTROL CONFIDENCE
                   </span>
                 </div>
-                <p className="text-[11px] font-mono text-cyan-400 mb-2">{c.clusterId} · {c.addresses.length} Linked Wallets</p>
+                <p className="text-[11px] font-mono mb-2" style={{ color: t.mode === 'light' ? '#0284c7' : '#22d3ee' }}>{c.clusterId} · {c.addresses.length} Linked Wallets</p>
                 <div className="space-y-1">
                   {c.heuristicReasons.map((hr, idx) => (
                     <div key={idx} className="flex items-start gap-1.5 text-[11px]" style={{ color: t.textSub }}>
-                      <span className="text-[#00f2fe]">›</span>
+                      <span style={{ color: t.mode === 'light' ? '#1d4ed8' : '#00f2fe' }}>›</span>
                       <span>{hr}</span>
                     </div>
                   ))}
@@ -604,14 +607,20 @@ export default function CaseDetail({ caseId, onBack, onOpenAI, onOpenEvidence, s
         </div>
 
         <div className="space-y-2 max-w-sm">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-[#00f2fe] text-[10px] font-mono font-bold tracking-widest uppercase">
-            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+          <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full ${
+            t.mode === 'light' ? 'bg-blue-50 border border-blue-200 text-blue-700' : 'bg-cyan-500/10 border border-cyan-500/30 text-[#00f2fe]'
+          } text-[10px] font-mono font-bold tracking-widest uppercase`}>
+            <span className={`w-2 h-2 rounded-full ${t.mode === 'light' ? 'bg-blue-600' : 'bg-cyan-400'} animate-ping`} />
             Analyzing On-Chain Data
           </div>
           <p className="text-[17px] font-bold text-white tracking-wide" style={{ fontFamily: "'Rajdhani', sans-serif" }}>
             Interrogating Multi-Chain RPC Nodes & Clusters...
           </p>
-          <p className="text-[11px] font-mono text-cyan-300/80 truncate px-4 py-1.5 rounded-lg bg-white/5 border border-white/10">
+          <p className="text-[11px] font-mono truncate px-4 py-1.5 rounded-lg" style={{
+            background: t.mode === 'light' ? '#f8fafc' : 'rgba(255,255,255,0.05)',
+            color: t.mode === 'light' ? '#0369a1' : '#38bdf8',
+            border: `1px solid ${t.border}`
+          }}>
             {addr !== '—' ? addr : caseId}
           </p>
           <p className="text-[11px] text-white/50">
@@ -664,7 +673,11 @@ export default function CaseDetail({ caseId, onBack, onOpenAI, onOpenEvidence, s
             </button>
             <button
               onClick={onOpenAI}
-              className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 hover:bg-cyan-500/30 transition-all flex items-center gap-1.5 shadow-sm"
+              className={`px-3 py-1.5 rounded-xl text-[11px] font-bold ${
+                t.mode === 'light'
+                  ? 'bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100'
+                  : 'bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 hover:bg-cyan-500/30'
+              } transition-all flex items-center gap-1.5 shadow-sm`}
             >
               <span>🤖</span> AI Copilot
             </button>
@@ -678,15 +691,19 @@ export default function CaseDetail({ caseId, onBack, onOpenAI, onOpenEvidence, s
             return (
               <button key={tab.id} onClick={() => setActiveTab(tab.id)}
                       className="flex-shrink-0 px-3.5 py-2.5 text-[12px] font-semibold transition-all relative flex items-center gap-1"
-                      style={{ color: isActive ? '#00f2fe' : t.textMuted }}>
+                      style={{ color: isActive ? (t.mode === 'light' ? '#1d4ed8' : '#00f2fe') : t.textMuted }}>
                 {tab.label}
                 {tab.badge && (
-                  <span className="text-[8px] font-bold px-1.5 py-0.5 rounded-full bg-blue-500/20 text-cyan-300">
+                  <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${
+                    t.mode === 'light' ? 'bg-blue-100 text-blue-800' : 'bg-blue-500/20 text-cyan-300'
+                  }`}>
                     {tab.badge}
                   </span>
                 )}
                 {isActive && (
-                  <span className="absolute bottom-0 left-2 right-2 h-0.5 rounded-full bg-[#00f2fe]" />
+                  <span className={`absolute bottom-0 left-2 right-2 h-0.5 rounded-full ${
+                    t.mode === 'light' ? 'bg-blue-700' : 'bg-[#00f2fe]'
+                  }`} />
                 )}
               </button>
             );

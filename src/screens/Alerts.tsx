@@ -95,11 +95,19 @@ export default function Alerts({ onNavigate, onOpenCase, activeTab }: AlertsProp
                 <button
                   key={f}
                   onClick={() => setFilter(f)}
-                  className="text-[12px] font-semibold px-4 py-2 rounded-xl transition-all active:scale-95"
+                  className="text-[12px] font-semibold px-4 py-2 rounded-xl transition-all active:scale-95 shadow-sm"
                   style={{
-                    background: filter === f ? 'rgba(0,242,254,0.15)' : t.card2,
-                    color:      filter === f ? '#00f2fe' : t.textMuted,
-                    border:     `1px solid ${filter === f ? 'rgba(0,242,254,0.3)' : t.border}`,
+                    background: filter === f
+                      ? (t.mode === 'light' ? 'rgba(29, 78, 216, 0.12)' : 'rgba(0, 242, 254, 0.15)')
+                      : t.card2,
+                    color: filter === f
+                      ? (t.mode === 'light' ? '#1d4ed8' : '#00f2fe')
+                      : t.textMuted,
+                    border: `1px solid ${
+                      filter === f
+                        ? (t.mode === 'light' ? 'rgba(29, 78, 216, 0.35)' : 'rgba(0, 242, 254, 0.3)')
+                        : t.border
+                    }`,
                   }}
                 >
                   {f} {f === 'All' ? `(${alerts.length})` : ''}
@@ -119,7 +127,11 @@ export default function Alerts({ onNavigate, onOpenCase, activeTab }: AlertsProp
                   className="w-full rounded-2xl p-5 flex items-start gap-3.5 transition-all hover:scale-[1.01] active:scale-[0.98] text-left group"
                   style={{
                     background: a.read ? t.card : t.card2,
-                    border:     `1px solid ${a.read ? t.border : 'rgba(0,242,254,0.25)'}`,
+                    border: `1px solid ${
+                      a.read
+                        ? t.border
+                        : (t.mode === 'light' ? 'rgba(29, 78, 216, 0.35)' : 'rgba(0, 242, 254, 0.25)')
+                    }`,
                   }}
                 >
                   <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
@@ -132,15 +144,15 @@ export default function Alerts({ onNavigate, onOpenCase, activeTab }: AlertsProp
                             style={{ background: s.bg, color: s.color }}>
                         {s.label}
                       </span>
-                      <span className="text-[10px] text-white/35 font-mono" style={{ color: t.textMuted }}>{a.time}</span>
+                      <span className="text-[10px] font-mono" style={{ color: t.textMuted }}>{a.time}</span>
                     </div>
-                    <h3 className="text-[14px] font-bold text-white mb-1 group-hover:text-[#00f2fe] transition-colors" style={{ fontFamily: "'Rajdhani', sans-serif", color: t.text }}>
+                    <h3 className="text-[14px] font-bold mb-1 transition-colors" style={{ fontFamily: "'Rajdhani', sans-serif", color: t.text }}>
                       {a.title}
                     </h3>
-                    <p className="text-[12px] text-white/60 leading-relaxed mb-3" style={{ color: t.textSub }}>{a.body}</p>
-                    <div className="flex items-center justify-between pt-2 border-t border-white/5">
-                      <span className="text-[11px] text-[#00f2fe] font-mono font-bold">{a.case}</span>
-                      <span className="text-[11px] text-[#00f2fe] font-semibold group-hover:translate-x-1 transition-transform">
+                    <p className="text-[12px] leading-relaxed mb-3" style={{ color: t.textSub }}>{a.body}</p>
+                    <div className="flex items-center justify-between pt-2 border-t" style={{ borderColor: t.border }}>
+                      <span className="text-[11px] font-mono font-bold" style={{ color: t.mode === 'light' ? '#1d4ed8' : '#00f2fe' }}>{a.case}</span>
+                      <span className="text-[11px] font-semibold group-hover:translate-x-1 transition-transform" style={{ color: t.mode === 'light' ? '#1d4ed8' : '#00f2fe' }}>
                         Open Case →
                       </span>
                     </div>

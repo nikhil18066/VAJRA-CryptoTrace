@@ -242,7 +242,11 @@ export default function Investigate({
                   <button
                     onClick={() => setShowDrop(!showDrop)}
                     className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl text-[13px] transition-all"
-                    style={{ background: t.card2, border: `1.5px solid ${showDrop ? '#00f2fe' : t.border}`, color: t.text }}
+                    style={{
+                      background: t.card2,
+                      border: `1.5px solid ${showDrop ? (t.mode === 'light' ? '#1d4ed8' : '#00f2fe') : t.border}`,
+                      color: t.text
+                    }}
                   >
                     <span className="font-medium">{chain}</span>
                     <span className="text-white/40 text-xs">▼</span>
@@ -259,12 +263,17 @@ export default function Investigate({
                           onClick={() => { setChain(c); setShowDrop(false); }}
                           className="w-full flex items-center justify-between px-4 py-2.5 text-[12px] transition-colors"
                           style={{
-                            color: c === chain ? '#00f2fe' : t.textSub,
-                            background: c === chain ? 'rgba(0,242,254,0.08)' : 'transparent',
+                            color: c === chain ? (t.mode === 'light' ? '#1d4ed8' : '#00f2fe') : t.textSub,
+                            background: c === chain
+                              ? (t.mode === 'light' ? 'rgba(29, 78, 216, 0.12)' : 'rgba(0, 242, 254, 0.08)')
+                              : 'transparent',
+                            fontWeight: c === chain ? 600 : 400
                           }}
                         >
                           <span>{c}</span>
-                          {c === chain && <span className="text-cyan-400 font-bold">✓</span>}
+                          {c === chain && (
+                            <span className="font-bold" style={{ color: t.mode === 'light' ? '#1d4ed8' : '#22d3ee' }}>✓</span>
+                          )}
                         </button>
                       ))}
                     </div>
