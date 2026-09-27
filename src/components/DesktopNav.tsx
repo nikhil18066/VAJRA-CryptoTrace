@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useTheme } from '../context/theme';
 import { VajraLogo } from './Graphics';
 
@@ -26,6 +27,24 @@ export default function DesktopNav({
 }: DesktopNavProps) {
   const { t, toggle } = useTheme();
   const isDark = t.mode === 'dark';
+
+  const [uiScale, setUiScale] = useState<string>(() => {
+    try {
+      return localStorage.getItem('vajra-ui-scale') || '85';
+    } catch {
+      return '85';
+    }
+  });
+
+  const cycleUiScale = () => {
+    // Cycle between 80 -> 85 -> 100 -> 80
+    const nextScale = uiScale === '85' ? '80' : uiScale === '80' ? '100' : '85';
+    setUiScale(nextScale);
+    try {
+      localStorage.setItem('vajra-ui-scale', nextScale);
+    } catch {}
+    document.documentElement.setAttribute('data-ui-scale', nextScale);
+  };
 
   const navLinks: { id: Tab | 'CROSS_CASE' | 'AI_INVESTIGATOR'; label: string; icon: string; badge?: string }[] = [
     { id: 'DASHBOARD', label: 'Dashboard', icon: '⚡' },
@@ -147,6 +166,23 @@ export default function DesktopNav({
             <span>{caseId}</span>
           </button>
         )}
+
+        {/* UI Density / Zoom Scale Controller */}
+        <button
+          onClick={cycleUiScale}
+          className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-mono font-bold transition-all active:scale-95"
+          style={{
+            background: t.card2,
+            border: `1px solid ${t.border}`,
+            color: t.mode === 'light' ? '#0284c7' : '#00f2fe',
+          }}
+          title={`Desktop Density Scale: ${uiScale}% (Click to toggle 80% / 85% / 100%)`}
+        >
+          <svg className="w-3.5 h-3.5 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+          </svg>
+          <span>{uiScale}%</span>
+        </button>
 
         {/* Dark / Light Mode Toggle */}
         <button
