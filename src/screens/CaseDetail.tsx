@@ -87,7 +87,7 @@ function WalletTab({ data, t }: { data: ReturnType<typeof analysisStore.get>; t:
   const portfolio = b?.portfolio || [];
 
   return (
-    <div className="overflow-y-auto h-full px-4 sm:px-6 md:px-8 pt-4 pb-8 space-y-6 max-w-7xl mx-auto w-full">
+    <div className="overflow-y-auto h-full px-4 sm:px-6 md:px-8 pt-4 pb-28 md:pb-16 space-y-6 max-w-7xl mx-auto w-full">
       {/* Address chip */}
       <div className="rounded-2xl px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
            style={{ background: t.card2, border: `1px solid ${t.borderAccent}` }}>
@@ -206,7 +206,7 @@ function VaspTab({ data, t }: { data: ReturnType<typeof analysisStore.get>; t: T
   const primary = vasps[0] || { name: 'Unknown VASP', confidence: 0, category: 'Unhosted' };
 
   return (
-    <div className="overflow-y-auto h-full px-4 sm:px-6 md:px-8 pt-4 pb-8 space-y-6 max-w-7xl mx-auto w-full">
+    <div className="overflow-y-auto h-full px-4 sm:px-6 md:px-8 pt-4 pb-28 md:pb-16 space-y-6 max-w-7xl mx-auto w-full">
       <SectionHeader title="Primary VASP Attribution & Counterparty Classification" t={t} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -261,7 +261,7 @@ function RiskTab({ data, t }: { data: ReturnType<typeof analysisStore.get>; t: T
   const predictions = data.predictions;
 
   return (
-    <div className="overflow-y-auto h-full px-4 sm:px-6 md:px-8 pt-4 pb-8 space-y-6 max-w-7xl mx-auto w-full">
+    <div className="overflow-y-auto h-full px-4 sm:px-6 md:px-8 pt-4 pb-28 md:pb-16 space-y-6 max-w-7xl mx-auto w-full">
       <SectionHeader title="VAJRA Risk Engine 2.0 · 6D Risk DNA Profile" t={t} />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
@@ -340,7 +340,7 @@ function TxnsTab({ data, t }: { data: ReturnType<typeof analysisStore.get>; t: T
   };
 
   return (
-    <div className="overflow-y-auto h-full px-4 sm:px-6 md:px-8 pt-4 pb-8 space-y-4 max-w-7xl mx-auto w-full">
+    <div className="overflow-y-auto h-full px-4 sm:px-6 md:px-8 pt-4 pb-28 md:pb-16 space-y-4 max-w-7xl mx-auto w-full">
       <SectionHeader title={`Transactions · ${recent.length} displayed (${chain})`} t={t} />
       {recent.length === 0 ? (
         <div className="rounded-2xl p-8 text-center space-y-2" style={{ background: t.card, border: `1px solid ${t.border}` }}>
@@ -420,7 +420,7 @@ function EvidencePreviewTab({ data, caseId, onOpenEvidence, showToast, t }: {
   } : null;
 
   return (
-    <div className="overflow-y-auto h-full px-4 sm:px-6 md:px-8 pt-4 pb-8 space-y-6 max-w-7xl mx-auto w-full">
+    <div className="overflow-y-auto h-full px-4 sm:px-6 md:px-8 pt-4 pb-28 md:pb-16 space-y-6 max-w-7xl mx-auto w-full">
       {/* Evidence Sealed Badge */}
       <div className="rounded-2xl px-5 py-3.5 flex items-center justify-between"
            style={{ background: 'rgba(0,214,143,0.07)', border: '1px solid rgba(0,214,143,0.18)' }}>
@@ -499,7 +499,7 @@ function EvidencePreviewTab({ data, caseId, onOpenEvidence, showToast, t }: {
 /* ─── Report Tab ─── */
 function ReportTab({ data, caseId, showToast, t }: { data: any; caseId: string; showToast?: any; t: ThemeColors }) {
   return (
-    <div className="overflow-y-auto h-full px-4 sm:px-6 md:px-8 pt-4 pb-8 space-y-6 max-w-7xl mx-auto w-full">
+    <div className="overflow-y-auto h-full px-4 sm:px-6 md:px-8 pt-4 pb-28 md:pb-16 space-y-6 max-w-7xl mx-auto w-full">
       <SectionHeader title="Forensic Case Dossier & Statutory Notice Dispatch" t={t} />
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">

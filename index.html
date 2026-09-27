@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="light" data-ui-scale="85">
+<html lang="en" data-theme="light">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -9,8 +9,6 @@
         try {
           var theme = localStorage.getItem('vajra-theme') || 'light';
           document.documentElement.setAttribute('data-theme', theme);
-          var scale = localStorage.getItem('vajra-ui-scale') || '85';
-          document.documentElement.setAttribute('data-ui-scale', scale);
         } catch(e) {}
       })();
     </script>

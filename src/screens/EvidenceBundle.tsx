@@ -120,7 +120,7 @@ export default function EvidenceBundle({ caseId, onBack }: EvidenceBundleProps) 
 
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-8 py-6 space-y-6">
+        <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-8 pt-6 pb-28 md:pb-16 space-y-6">
 
           {/* Seal Badge */}
           <div className="rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm"

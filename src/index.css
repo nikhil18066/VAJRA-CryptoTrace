@@ -43,25 +43,6 @@
   input, textarea, select { font-family: var(--font-sans); }
 }
 
-/* ── Desktop UI Scaling & Density Optimization ── */
-@media (min-width: 1024px) {
-  html {
-    zoom: 0.85; /* Default 85% clean, spacious, executive layout density */
-  }
-}
-
-html[data-ui-scale="80"] {
-  zoom: 0.80 !important;
-}
-html[data-ui-scale="85"] {
-  zoom: 0.85 !important;
-}
-html[data-ui-scale="90"] {
-  zoom: 0.90 !important;
-}
-html[data-ui-scale="100"] {
-  zoom: 1.0 !important;
-}
 
 
 /* ── Scrollbar ── */

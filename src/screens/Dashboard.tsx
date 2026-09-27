@@ -98,7 +98,7 @@ export default function Dashboard({
 
       {/* ── Scrollable content ── */}
       <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: 'none' }}>
-        <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-8 pt-12 md:pt-4 pb-6 space-y-4">
+        <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-8 pt-12 md:pt-6 pb-28 md:pb-16 space-y-5">
 
           {/* Top Banner / Actions Bar */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
