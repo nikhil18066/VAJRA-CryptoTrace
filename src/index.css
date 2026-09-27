@@ -43,6 +43,19 @@
   input, textarea, select { font-family: var(--font-sans); }
 }
 
+/* ── Automatic 80% Desktop Scaling without bottom clipping ── */
+@media (min-width: 1024px) {
+  body {
+    zoom: 0.8;
+    -moz-transform: scale(0.8);
+    -moz-transform-origin: top left;
+  }
+  #root {
+    min-height: 125vh;
+    height: 125vh;
+  }
+}
+
 
 
 /* ── Scrollbar ── */
