@@ -93,6 +93,9 @@ export default function CrossCaseView({ onBack, onOpenCase }: CrossCaseViewProps
     return { x: 0, y: 0 };
   }
 
+  const selectedCaseObj = caseNodes.find((c) => c.id === selectedNode);
+  const selectedSharedObj = sharedNodes.find((s) => s.id === selectedNode);
+
   return (
     <div className="flex flex-col h-full w-full overflow-hidden" style={{ background: t.bg }}>
 
@@ -103,138 +106,245 @@ export default function CrossCaseView({ onBack, onOpenCase }: CrossCaseViewProps
           <button onClick={onBack}
                   className="w-9 h-9 rounded-xl flex items-center justify-center active:scale-95 transition-all"
                   style={{ background: t.inputBg }}>
-            <svg className="w-5 h-5 text-white/70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-5 h-5 text-white/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ color: t.textSub }}>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
           <div>
-            <h1 className="text-[18px] md:text-[20px] font-bold text-white tracking-wide"
-                style={{ fontFamily: "'Rajdhani', sans-serif", color: t.text }}>Cross-Case Correlation Hub</h1>
-            <p className="text-[11px] text-white/35" style={{ color: t.textMuted }}>{cases.length} database cases · 3 shared infrastructure clusters</p>
+            <h1 className="text-[17px] md:text-[20px] font-bold text-white tracking-wide"
+                style={{ fontFamily: "'Rajdhani', sans-serif", color: t.text }}>Cross-Case Correlation</h1>
+            <p className="text-[10px] md:text-[11px] text-white/35" style={{ color: t.textMuted }}>{cases.length} database cases · 3 shared infrastructure clusters</p>
           </div>
         </div>
-        <div className="px-3.5 py-1.5 rounded-xl flex items-center gap-2"
+        <div className="px-3 py-1.5 rounded-xl flex items-center gap-1.5"
              style={{ background: 'rgba(255,61,90,0.1)', border: '1px solid rgba(255,61,90,0.2)' }}>
-          <div className="w-2 h-2 rounded-full bg-[#ff3d5a] animate-ping" />
-          <span className="text-[11px] font-bold text-[#ff3d5a]">High Priority Linkages</span>
+          <div className="w-1.5 h-1.5 rounded-full bg-[#ff3d5a]" />
+          <span className="text-[10px] font-bold text-[#ff3d5a]">Alert</span>
         </div>
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-8 py-6 space-y-6">
+        <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-8 py-4 space-y-4">
 
-          {/* ── 2-Column Responsive Layout on Desktop ── */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            
-            {/* Correlation Graph (7 cols on desktop) */}
-            <div className="lg:col-span-7 rounded-2xl overflow-hidden shadow-lg"
-                 style={{ background: t.card2, border: `1px solid ${t.borderAccent}`, height: 380 }}>
-              <svg viewBox="0 0 340 300" className="w-full h-full">
-                <defs>
-                  <pattern id="crossGrid" width="20" height="20" patternUnits="userSpaceOnUse">
-                    <circle cx="10" cy="10" r="0.8" fill="rgba(255,255,255,0.06)" />
-                  </pattern>
-                </defs>
-                <rect width="100%" height="100%" fill="url(#crossGrid)" />
+          {/* ── Responsive Layout (2-columns on desktop, stacked on mobile) ── */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
 
-                {/* Connection edges */}
-                {connections.map((c, i) => {
-                  const p1 = getNodePos(c.from);
-                  const p2 = getNodePos(c.to);
-                  const isHigh = c.weight >= 3;
-                  const isSelected = selectedNode === c.from || selectedNode === c.to;
-                  return (
-                    <line
-                      key={i}
-                      x1={p1.x} y1={p1.y}
-                      x2={p2.x} y2={p2.y}
-                      stroke={isSelected ? '#00f2fe' : isHigh ? '#ff3d5a' : 'rgba(255,255,255,0.2)'}
-                      strokeWidth={isSelected ? 2.5 : isHigh ? 2 : 1.2}
-                      strokeDasharray={isHigh ? undefined : '3,3'}
-                      opacity={isSelected ? 1 : 0.7}
-                    />
-                  );
-                })}
+            {/* Left Section: Graph + Legend + Selected Node Inspection (7 cols on desktop) */}
+            <div className="lg:col-span-7 space-y-3">
+              
+              {/* Network Graph */}
+              <div className="rounded-2xl overflow-hidden relative shadow-md"
+                   style={{ background: t.card2, border: `1px solid ${t.borderAccent}`, height: 320 }}>
+                <svg viewBox="0 0 340 300" className="w-full h-full">
+                  <defs>
+                    <pattern id="crossGrid" width="20" height="20" patternUnits="userSpaceOnUse">
+                      <circle cx="10" cy="10" r="0.8" fill="rgba(255,255,255,0.06)" />
+                    </pattern>
+                  </defs>
+                  <rect width="100%" height="100%" fill="url(#crossGrid)" />
 
-                {/* Case nodes */}
-                {caseNodes.map((cn) => {
-                  const rc = RISK_COLORS[cn.risk] || RISK_COLORS.med;
-                  const isSel = selectedNode === cn.id;
-                  return (
-                    <g key={cn.id} onClick={() => setSelectedNode(isSel ? null : cn.id)} style={{ cursor: 'pointer' }}>
-                      <circle cx={cn.x} cy={cn.y} r={isSel ? 24 : 20}
-                              fill={rc.fill} stroke={rc.stroke} strokeWidth={isSel ? 2.5 : 1.5} />
-                      <text x={cn.x} y={cn.y - 4} textAnchor="middle" fill="#fff" fontSize="7" fontWeight="bold">
-                        {cn.id.slice(0, 8)}
-                      </text>
-                      <text x={cn.x} y={cn.y + 6} textAnchor="middle" fill={rc.text} fontSize="6.5" fontFamily="monospace">
-                        {cn.score}/100
-                      </text>
-                    </g>
-                  );
-                })}
-
-                {/* Shared nodes */}
-                {sharedNodes.map((sn) => {
-                  const ns = NODE_STYLES[sn.type] || NODE_STYLES.wallet;
-                  const isSel = selectedNode === sn.id;
-                  return (
-                    <g key={sn.id} onClick={() => setSelectedNode(isSel ? null : sn.id)} style={{ cursor: 'pointer' }}>
-                      <rect x={sn.x - 22} y={sn.y - 12} width={44} height={24} rx={6}
-                            fill={ns.fill} stroke={isSel ? '#00f2fe' : ns.stroke} strokeWidth={isSel ? 2 : 1.2} />
-                      <text x={sn.x} y={sn.y + 1} textAnchor="middle" fill="#fff" fontSize="6.5" fontWeight="bold">
-                        {sn.label.slice(0, 8)}
-                      </text>
-                      <text x={sn.x} y={sn.y + 8} textAnchor="middle" fill={ns.stroke} fontSize="5" fontFamily="monospace">
-                        {sn.type.toUpperCase()}
-                      </text>
-                    </g>
-                  );
-                })}
-              </svg>
-            </div>
-
-            {/* Right: Key Insights & Linked Cases (5 cols on desktop) */}
-            <div className="lg:col-span-5 space-y-4">
-              <div className="rounded-2xl p-5 space-y-3" style={{ background: t.card, border: `1px solid ${t.border}` }}>
-                <h3 className="text-[14px] font-bold text-white tracking-wide" style={{ fontFamily: "'Rajdhani', sans-serif" }}>
-                  Autonomous Cross-Case Intelligence
-                </h3>
-                <div className="space-y-2.5">
-                  {insights.map((ins, i) => {
-                    const sc = SEVERITY_COLORS[ins.severity] || SEVERITY_COLORS.info;
+                  {/* Connection edges */}
+                  {connections.map((c, i) => {
+                    const p1 = getNodePos(c.from);
+                    const p2 = getNodePos(c.to);
+                    const isHigh = c.weight >= 3;
+                    const isSelected = selectedNode === c.from || selectedNode === c.to;
                     return (
-                      <div key={i} className="p-3 rounded-xl flex items-start gap-3"
-                           style={{ background: sc.bg, border: `1px solid ${sc.color}25` }}>
-                        <span className="text-lg">{ins.icon}</span>
-                        <div>
-                          <p className="text-[12px] font-bold" style={{ color: sc.color }}>{ins.label}</p>
-                          <p className="text-[11px] text-white/60 leading-snug mt-0.5">{ins.value}</p>
-                        </div>
-                      </div>
+                      <g key={i}>
+                        <line
+                          x1={p1.x} y1={p1.y}
+                          x2={p2.x} y2={p2.y}
+                          stroke={isSelected ? '#00f2fe' : isHigh ? 'rgba(255,61,90,0.5)' : 'rgba(255,255,255,0.15)'}
+                          strokeWidth={isSelected ? 2 : isHigh ? 1.5 : 1}
+                          strokeDasharray={isHigh ? undefined : '3,3'}
+                        />
+                        {isSelected && (
+                          <circle r="3" fill="#00f2fe">
+                            <animateMotion
+                              path={`M${p1.x},${p1.y} L${p2.x},${p2.y}`}
+                              dur="2s"
+                              repeatCount="indefinite"
+                            />
+                          </circle>
+                        )}
+                      </g>
                     );
                   })}
+
+                  {/* Case nodes */}
+                  {caseNodes.map((c) => {
+                    const col = RISK_COLORS[c.risk] || RISK_COLORS.med;
+                    const isSel = selectedNode === c.id;
+                    return (
+                      <g key={c.id}
+                         transform={`translate(${c.x}, ${c.y})`}
+                         className="cursor-pointer"
+                         onClick={() => setSelectedNode(isSel ? null : c.id)}>
+                        {isSel && (
+                          <circle r="26" fill="none" stroke="#00f2fe" strokeWidth="1.5"
+                                  strokeDasharray="4,2" className="anim-spin" />
+                        )}
+                        <circle r="20" fill={col.fill} stroke={col.stroke} strokeWidth="1.5" />
+                        <text y="-3" textAnchor="middle" fontSize="7" fill={col.text}
+                              fontFamily="monospace" fontWeight="bold">
+                          {c.id.split('-').pop()}
+                        </text>
+                        <text y="7" textAnchor="middle" fontSize="8" fill="white"
+                              fontWeight="bold" fontFamily="sans-serif">
+                          {c.score}
+                        </text>
+                        <text y="30" textAnchor="middle" fontSize="7" fill="rgba(255,255,255,0.4)"
+                              fontFamily="monospace">
+                          {c.id}
+                        </text>
+                      </g>
+                    );
+                  })}
+
+                  {/* Shared infrastructure nodes */}
+                  {sharedNodes.map((s) => {
+                    const sty = NODE_STYLES[s.type];
+                    const isSel = selectedNode === s.id;
+                    return (
+                      <g key={s.id}
+                         transform={`translate(${s.x}, ${s.y})`}
+                         className="cursor-pointer"
+                         onClick={() => setSelectedNode(isSel ? null : s.id)}>
+                        {isSel && (
+                          <circle r="22" fill="none" stroke={sty.stroke} strokeWidth="1.5"
+                                  strokeDasharray="3,2" />
+                        )}
+                        <polygon
+                          points="0,-16 16,0 0,16 -16,0"
+                          fill={sty.fill}
+                          stroke={sty.stroke}
+                          strokeWidth="1.5"
+                        />
+                        <text y="3" textAnchor="middle" fontSize="7" fill={sty.stroke}
+                              fontWeight="bold" fontFamily="sans-serif">
+                          {s.id}
+                        </text>
+                        <text y="25" textAnchor="middle" fontSize="7" fill="rgba(255,255,255,0.5)"
+                              fontFamily="sans-serif">
+                          {s.label}
+                        </text>
+                      </g>
+                    );
+                  })}
+                </svg>
+              </div>
+
+              {/* Legend */}
+              <div className="flex items-center justify-center gap-4 py-2 text-[10px] text-white/40">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#ff3d5a]" />
+                  <span style={{ color: t.textMuted }}>Case Node</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2.5 h-2.5 rotate-45 bg-[#00d68f]" />
+                  <span style={{ color: t.textMuted }}>Shared VASP</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2.5 h-2.5 rotate-45 bg-[#ec4899]" />
+                  <span style={{ color: t.textMuted }}>Shared Mixer</span>
                 </div>
               </div>
 
-              {/* Linked Case Quick Select */}
-              <div className="rounded-2xl p-5" style={{ background: t.card, border: `1px solid ${t.border}` }}>
-                <h4 className="text-[13px] font-bold text-white mb-3" style={{ fontFamily: "'Rajdhani', sans-serif" }}>
-                  Connected Dockets in Correlation Graph
-                </h4>
+              {/* Selected Node Details Card */}
+              {selectedCaseObj && (
+                <div className="rounded-xl p-4 space-y-2 animate-fadeIn" style={{ background: t.card, border: `1px solid ${t.borderAccent}` }}>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[12px] font-bold text-white font-mono">{selectedCaseObj.id}</span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-500/15 text-[#ff3d5a]">
+                      Score: {selectedCaseObj.score}/100
+                    </span>
+                  </div>
+                  <p className="text-[11px] font-mono text-cyan-300 break-all">{selectedCaseObj.wallet || 'Target Address'}</p>
+                  <p className="text-[10px] text-white/50">{selectedCaseObj.chain} Network</p>
+                  <button onClick={() => onOpenCase(selectedCaseObj.id)}
+                          className="w-full mt-2 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-[11px] active:scale-95 transition-all">
+                    Open Full Case Dossier →
+                  </button>
+                </div>
+              )}
+
+              {selectedSharedObj && (
+                <div className="rounded-xl p-4 space-y-2 animate-fadeIn" style={{ background: t.card, border: `1px solid ${t.borderAccent}` }}>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[12px] font-bold text-white">{selectedSharedObj.label} ({selectedSharedObj.id})</span>
+                    <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400">
+                      {selectedSharedObj.type}
+                    </span>
+                  </div>
+                  <p className="text-[11px] font-mono text-cyan-300">{selectedSharedObj.addr}</p>
+                  <p className="text-[10px] text-white/60">
+                    Intersects with active cases across multiple jurisdiction dockets in the national registry.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Right Section: Correlation Insights + Linked Investigations (5 cols on desktop) */}
+            <div className="lg:col-span-5 space-y-4">
+              
+              {/* Dynamic Key Intelligence Insights */}
+              <div className="space-y-3">
+                <p className="text-[11px] font-bold text-white/40 uppercase tracking-widest"
+                   style={{ color: t.textMuted }}>Correlation Insights</p>
+
                 <div className="space-y-2">
-                  {caseNodes.map((cn) => (
-                    <div key={cn.id} className="flex items-center justify-between p-2.5 rounded-xl"
-                         style={{ background: t.card2, border: `1px solid ${t.border}` }}>
-                      <div>
-                        <p className="text-[12px] font-mono font-bold text-white">{cn.id}</p>
-                        <p className="text-[10px] text-white/40">{cn.chain} · {cn.wallet ? `${cn.wallet.slice(0, 6)}...${cn.wallet.slice(-4)}` : 'Target'}</p>
+                  {insights.map((ins, i) => (
+                    <div key={i} className="rounded-xl p-3.5 flex items-start gap-3"
+                         style={{
+                           background: SEVERITY_COLORS[ins.severity].bg,
+                           border: `1px solid ${SEVERITY_COLORS[ins.severity].color}25`,
+                         }}>
+                      <span className="text-[16px] leading-none mt-0.5">{ins.icon}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <p className="text-[11px] font-bold text-white" style={{ color: t.text }}>{ins.label}</p>
+                          <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded"
+                                style={{
+                                  background: `${SEVERITY_COLORS[ins.severity].color}20`,
+                                  color: SEVERITY_COLORS[ins.severity].color,
+                                }}>
+                            {ins.severity}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-white/55 mt-1 leading-snug" style={{ color: t.textSub }}>{ins.value}</p>
                       </div>
-                      <button onClick={() => onOpenCase(cn.id)}
-                              className="px-3 py-1 rounded-lg bg-blue-600/30 hover:bg-blue-600/50 border border-blue-500/40 text-cyan-300 text-[11px] font-bold">
-                        View Dossier →
-                      </button>
                     </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Connected Investigations List */}
+              <div className="pt-1">
+                <p className="text-[11px] font-bold text-white/40 uppercase tracking-widest mb-2"
+                   style={{ color: t.textMuted }}>Linked Investigations ({cases.length})</p>
+                <div className="space-y-2 pb-6">
+                  {cases.slice(0, 5).map((c) => (
+                    <button
+                      key={c.id}
+                      onClick={() => onOpenCase(c.id)}
+                      className="w-full rounded-xl p-3 flex items-center justify-between transition-all active:scale-[0.98] text-left hover:scale-[1.01]"
+                      style={{ background: t.card, border: `1px solid ${t.border}` }}
+                    >
+                      <div className="min-w-0 pr-2">
+                        <span className="text-[12px] font-semibold text-white font-mono" style={{ color: t.text }}>{c.id}</span>
+                        <span className="text-[10px] text-white/40 block font-mono truncate" style={{ color: t.textMuted }}>{c.wallet}</span>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                              style={{
+                                background: c.riskScore >= 75 ? 'rgba(255,61,90,0.15)' : 'rgba(245,166,35,0.15)',
+                                color: c.riskScore >= 75 ? '#ff3d5a' : '#f5a623',
+                              }}>
+                          {c.riskScore}/100
+                        </span>
+                        <span className="text-[11px] text-[#00f2fe] font-semibold">View →</span>
+                      </div>
+                    </button>
                   ))}
                 </div>
               </div>
