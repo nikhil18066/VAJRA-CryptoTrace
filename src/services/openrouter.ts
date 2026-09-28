@@ -4,14 +4,12 @@ const KEY  = (import.meta.env.VITE_OPENROUTER_API_KEY as string) || '';
 
 // High-speed, high-availability free models prioritized by latency and token completion capacity
 const MODELS = [
-  'google/gemini-2.0-flash-lite-preview-02-05:free',
-  'google/gemini-2.0-flash-exp:free',
-  'google/gemini-flash-1.5-8b:free',
-  'deepseek/deepseek-chat:free',
-  'meta-llama/llama-3.3-70b-instruct:free',
-  'qwen/qwen-2.5-72b-instruct:free',
-  'mistralai/mistral-small-24b-instruct-2501:free',
   'openrouter/free',
+  'nvidia/nemotron-3-ultra-550b-a55b:free',
+  'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
+  'stealth/space-bunny-alpha',
+  'nvidia/nemotron-3.5-lightning:free',
+  'nvidia/nemotron-3-super-120b-a12b:free',
 ] as const;
 
 let modelCursor = 0;
