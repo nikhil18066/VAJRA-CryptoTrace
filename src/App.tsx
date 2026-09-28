@@ -60,6 +60,7 @@ export default function App() {
   const [caseId, setCaseId]       = useState('INV-2024-00128');
   const [wallet, setWallet]       = useState('');
   const [chain, setChain]         = useState('Ethereum');
+  const [aiCaseId, setAiCaseId]   = useState('GENERAL');
   const [toasts, setToasts]       = useState<ToastData[]>([]);
   const [showSearch, setShowSearch] = useState(false);
 
@@ -292,7 +293,14 @@ export default function App() {
           activeTab={activeTab}
           currentScreen={screen}
           onNavigate={(tab) => navigateTab(tab)}
-          onOpenScreen={(s) => go(s as Screen, 'forward')}
+          onOpenScreen={(s) => {
+            if (s === 'AI_INVESTIGATOR') {
+              setAiCaseId('GENERAL');
+              go('AI_INVESTIGATOR', 'forward');
+            } else {
+              go(s as Screen, 'forward');
+            }
+          }}
           onOpenSearch={() => setShowSearch(true)}
           onLogout={logout}
           caseId={caseId}
@@ -329,11 +337,7 @@ export default function App() {
             onNavigate={navigateTab}
             onOpenCase={openCase}
             onOpenAI={() => {
-              const allCases = caseStore.getAll();
-              const active = allCases.find((c) => c.id.toLowerCase() === caseId.toLowerCase()) || allCases[0];
-              if (active) {
-                openCase(active.id);
-              }
+              setAiCaseId('GENERAL');
               go('AI_INVESTIGATOR', 'forward');
             }}
             onNewInvestigation={() => { setActiveTab('INVESTIGATE'); navigateTab('INVESTIGATE'); }}
@@ -368,7 +372,10 @@ export default function App() {
           <CaseDetail
             caseId={caseId}
             onBack={backFromCase}
-            onOpenAI={() => go('AI_INVESTIGATOR', 'forward')}
+            onOpenAI={() => {
+              setAiCaseId(caseId);
+              go('AI_INVESTIGATOR', 'forward');
+            }}
             onOpenEvidence={() => go('EVIDENCE_BUNDLE', 'forward')}
             showToast={sharedToast}
           />
@@ -376,8 +383,14 @@ export default function App() {
 
         {screen === 'AI_INVESTIGATOR' && (
           <AIInvestigator
-            caseId={caseId}
-            onBack={backToCase}
+            caseId={aiCaseId}
+            onBack={() => {
+              if (aiCaseId && aiCaseId !== 'GENERAL' && prevScreen === 'CASE_DETAIL') {
+                backToCase();
+              } else {
+                go((prevScreen === 'CASE_DETAIL' ? 'CASE_DETAIL' : 'DASHBOARD'), 'back');
+              }
+            }}
           />
         )}
 

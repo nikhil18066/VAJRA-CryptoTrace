@@ -10,12 +10,44 @@ interface AIInvestigatorProps {
   onBack: () => void;
 }
 
-interface Message {
+export interface Message {
   id: string;
   role: 'user' | 'ai';
   content: string;
   timestamp: string;
   isStreaming?: boolean;
+}
+
+export interface ChatSession {
+  id: string;
+  title: string;
+  caseId: string; // 'GENERAL' or specific case ID
+  createdAt: number;
+  updatedAt: number;
+  messages: Message[];
+}
+
+const STORAGE_KEY_SESSIONS = 'vajra_ai_chat_sessions_v3';
+
+function loadStoredSessions(): ChatSession[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_SESSIONS);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch (err) {
+    console.warn('Failed to load chat history:', err);
+  }
+  return [];
+}
+
+function saveStoredSessions(sessions: ChatSession[]) {
+  try {
+    localStorage.setItem(STORAGE_KEY_SESSIONS, JSON.stringify(sessions.slice(0, 40))); // Keep last 40 sessions
+  } catch (err) {
+    console.warn('Failed to save chat history:', err);
+  }
 }
 
 // Check if a query is completely off-topic (e.g., cooking recipes, movies, entertainment, trivia)
@@ -583,16 +615,35 @@ const CASE_STARTER_CARDS = [
   },
 ];
 
+function formatTimeAgo(timestamp: number): string {
+  const diff = Date.now() - timestamp;
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'Just now';
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  return new Date(timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' });
+}
+
 export default function AIInvestigator({ caseId: initialCaseId, onBack }: AIInvestigatorProps) {
   const { t } = useTheme();
+  
+  // Default to 'GENERAL' mode when opened from global navigation or without explicit case
   const [selectedCaseId, setSelectedCaseId] = useState<string>(() => {
     if (initialCaseId && initialCaseId !== 'GENERAL') return initialCaseId;
-    return 'INV-2024-00128';
+    return 'GENERAL';
   });
+
   const [allCases, setAllCases] = useState(() => caseStore.getAll());
+  const [sessions, setSessions] = useState<ChatSession[]>(() => loadStoredSessions());
+  const [currentSessionId, setCurrentSessionId] = useState<string>(() => `session_${Date.now()}`);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
+  const [showHistoryDrawer, setShowHistoryDrawer] = useState(false);
+  const [historySearch, setHistorySearch] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -602,9 +653,12 @@ export default function AIInvestigator({ caseId: initialCaseId, onBack }: AIInve
     return unsub;
   }, []);
 
+  // Update selected case if parent passes an explicit caseId (e.g. clicked from inside a scanned CaseDetail)
   useEffect(() => {
     if (initialCaseId && initialCaseId !== selectedCaseId) {
       setSelectedCaseId(initialCaseId);
+    } else if (!initialCaseId && selectedCaseId !== 'GENERAL') {
+      setSelectedCaseId('GENERAL');
     }
   }, [initialCaseId]);
 
@@ -614,6 +668,43 @@ export default function AIInvestigator({ caseId: initialCaseId, onBack }: AIInve
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isStreaming]);
+
+  // Persist session to local history whenever messages change
+  const saveCurrentSession = useCallback((updatedMessages: Message[], activeCase: string) => {
+    if (updatedMessages.length === 0) return;
+
+    setSessions((prev) => {
+      const firstUserMsg = updatedMessages.find((m) => m.role === 'user')?.content || 'Investigation Session';
+      const cleanTitle = firstUserMsg.length > 42 ? firstUserMsg.slice(0, 42).trim() + '…' : firstUserMsg;
+      const title = activeCase !== 'GENERAL' ? `[${activeCase}] ${cleanTitle}` : cleanTitle;
+
+      const existingIndex = prev.findIndex((s) => s.id === currentSessionId);
+      let updated: ChatSession[];
+
+      if (existingIndex >= 0) {
+        updated = [...prev];
+        updated[existingIndex] = {
+          ...updated[existingIndex],
+          messages: updatedMessages,
+          caseId: activeCase,
+          updatedAt: Date.now(),
+        };
+      } else {
+        const newSession: ChatSession = {
+          id: currentSessionId,
+          title,
+          caseId: activeCase,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          messages: updatedMessages,
+        };
+        updated = [newSession, ...prev];
+      }
+
+      saveStoredSessions(updated);
+      return updated;
+    });
+  }, [currentSessionId]);
 
   const handleSend = useCallback((customText?: string) => {
     const text = (customText || input).trim();
@@ -635,7 +726,8 @@ export default function AIInvestigator({ caseId: initialCaseId, onBack }: AIInve
       isStreaming: true,
     };
 
-    setMessages((prev) => [...prev, userMsg, aiPlaceholder]);
+    const newMessages = [...messages, userMsg, aiPlaceholder];
+    setMessages(newMessages);
     if (!customText) setInput('');
     setIsStreaming(true);
 
@@ -655,9 +747,9 @@ I am prohibited from providing non-forensic content (such as cooking recipes, en
 • 🌪️ **Mixer De-Anonymization:** Evaluate time-correlation and amount-matching heuristics for Tornado Cash / Railgun.`;
 
       setTimeout(() => {
-        setMessages((prev) =>
-          prev.map((m) => (m.id === aiMsgId ? { ...m, content: refusal, isStreaming: false } : m))
-        );
+        const finalMsgs = newMessages.map((m) => (m.id === aiMsgId ? { ...m, content: refusal, isStreaming: false } : m));
+        setMessages(finalMsgs);
+        saveCurrentSession(finalMsgs, selectedCaseId);
         setIsStreaming(false);
       }, 150);
       return;
@@ -681,37 +773,96 @@ I am prohibited from providing non-forensic content (such as cooking recipes, en
       },
       () => {
         setIsStreaming(false);
-        setMessages((prev) =>
-          prev.map((m) => {
+        setMessages((prev) => {
+          const finalMsgs = prev.map((m) => {
             if (m.id === aiMsgId) {
               const content = m.content.trim() ? m.content : generateLocalResponse(text, selectedCaseId);
               return { ...m, content, isStreaming: false };
             }
             return m;
-          })
-        );
+          });
+          saveCurrentSession(finalMsgs, selectedCaseId);
+          return finalMsgs;
+        });
       },
       (err) => {
         console.warn('Streaming notice, deploying local high-speed forensic response:', err);
         const fallback = generateLocalResponse(text, selectedCaseId);
-        setMessages((prev) =>
-          prev.map((m) => (m.id === aiMsgId ? { ...m, content: fallback, isStreaming: false } : m))
-        );
+        setMessages((prev) => {
+          const finalMsgs = prev.map((m) => (m.id === aiMsgId ? { ...m, content: fallback, isStreaming: false } : m));
+          saveCurrentSession(finalMsgs, selectedCaseId);
+          return finalMsgs;
+        });
         setIsStreaming(false);
       }
     );
-  }, [input, isStreaming, messages, selectedCaseId]);
+  }, [input, isStreaming, messages, selectedCaseId, saveCurrentSession]);
 
-  const handleResetChat = () => {
+  // Start a fresh, clean chat session
+  const handleStartNewChat = () => {
+    // If current chat has messages, make sure it is saved
+    if (messages.length > 0) {
+      saveCurrentSession(messages, selectedCaseId);
+    }
     setMessages([]);
     setInput('');
+    setCurrentSessionId(`session_${Date.now()}`);
+    // If in general mode or opened from nav, keep GENERAL
+    if (!initialCaseId || initialCaseId === 'GENERAL') {
+      setSelectedCaseId('GENERAL');
+    }
+    setShowHistoryDrawer(false);
   };
+
+  // Load a past session from history
+  const handleLoadSession = (session: ChatSession) => {
+    if (messages.length > 0) {
+      saveCurrentSession(messages, selectedCaseId);
+    }
+    setCurrentSessionId(session.id);
+    setMessages(session.messages || []);
+    setSelectedCaseId(session.caseId || 'GENERAL');
+    setInput('');
+    setShowHistoryDrawer(false);
+  };
+
+  // Delete a specific session
+  const handleDeleteSession = (e: React.MouseEvent, sessionId: string) => {
+    e.stopPropagation();
+    setSessions((prev) => {
+      const updated = prev.filter((s) => s.id !== sessionId);
+      saveStoredSessions(updated);
+      return updated;
+    });
+    if (currentSessionId === sessionId) {
+      setMessages([]);
+      setCurrentSessionId(`session_${Date.now()}`);
+    }
+  };
+
+  // Clear all history
+  const handleClearAllHistory = () => {
+    if (window.confirm('Are you sure you want to clear all previous chat history?')) {
+      setSessions([]);
+      saveStoredSessions([]);
+      setMessages([]);
+      setCurrentSessionId(`session_${Date.now()}`);
+      setShowHistoryDrawer(false);
+    }
+  };
+
+  const filteredSessions = sessions.filter((s) => {
+    if (!historySearch.trim()) return true;
+    const term = historySearch.toLowerCase();
+    return s.title.toLowerCase().includes(term) || s.caseId.toLowerCase().includes(term) ||
+      s.messages.some((m) => m.content.toLowerCase().includes(term));
+  });
 
   const currentQuickPrompts = isGeneral ? GENERAL_QUICK_PROMPTS : CASE_QUICK_PROMPTS;
   const currentStarterCards = isGeneral ? GENERAL_STARTER_CARDS : CASE_STARTER_CARDS;
 
   return (
-    <div className="flex flex-col h-full w-full overflow-hidden" style={{ background: t.bg }}>
+    <div className="flex flex-col h-full w-full overflow-hidden relative" style={{ background: t.bg }}>
       
       {/* Header */}
       <div className="flex-shrink-0" style={{ background: t.nav }}>
@@ -737,17 +888,23 @@ I am prohibited from providing non-forensic content (such as cooking recipes, en
             </div>
           </div>
 
-          {/* Docket Switcher & Actions */}
+          {/* Action Buttons: New Chat, History & Case Switcher */}
           <div className="flex items-center gap-2 flex-wrap">
+            
             {/* Case Selection Dropdown */}
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[12px]"
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[12px]"
                  style={{ background: t.card, border: `1px solid ${t.border}` }}>
               <span className="text-[10px] font-mono font-bold uppercase" style={{ color: t.textMuted }}>Context:</span>
               <select
                 value={selectedCaseId}
                 onChange={(e) => {
-                  setSelectedCaseId(e.target.value);
-                  handleResetChat();
+                  const newCase = e.target.value;
+                  setSelectedCaseId(newCase);
+                  if (messages.length > 0) {
+                    saveCurrentSession(messages, selectedCaseId);
+                  }
+                  setMessages([]);
+                  setCurrentSessionId(`session_${Date.now()}`);
                 }}
                 className="bg-transparent text-[12px] font-semibold outline-none cursor-pointer"
                 style={{ color: t.text }}
@@ -765,20 +922,37 @@ I am prohibited from providing non-forensic content (such as cooking recipes, en
               </select>
             </div>
 
-            {/* New Chat Button */}
-            {messages.length > 0 && (
-              <button
-                onClick={handleResetChat}
-                className="px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all flex items-center gap-1.5 active:scale-95"
-                style={{ background: t.inputBg, border: `1px solid ${t.border}`, color: t.text }}
-                title="Start New Chat"
-              >
-                <svg className="w-3.5 h-3.5 text-[#00f2fe]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-                New Chat
-              </button>
-            )}
+            {/* + New Chat Button (Always Visible) */}
+            <button
+              onClick={handleStartNewChat}
+              className="px-3.5 py-1.5 rounded-xl text-[12px] font-bold transition-all flex items-center gap-1.5 active:scale-95 shadow-sm text-white bg-blue-600 hover:bg-blue-500"
+              title="Start a fresh investigation session"
+            >
+              <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+              </svg>
+              <span>New Chat</span>
+            </button>
+
+            {/* Chat History Button */}
+            <button
+              onClick={() => setShowHistoryDrawer(true)}
+              className="px-3 py-1.5 rounded-xl text-[12px] font-semibold transition-all flex items-center gap-1.5 active:scale-95 hover:opacity-80"
+              style={{ background: t.inputBg, border: `1px solid ${t.border}`, color: t.text }}
+              title="View previous chat history & results"
+            >
+              <svg className="w-4 h-4 text-[#0070f3]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>History</span>
+              {sessions.length > 0 && (
+                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-[#0070f3] text-white">
+                  {sessions.length}
+                </span>
+              )}
+            </button>
+
           </div>
         </div>
 
@@ -838,18 +1012,45 @@ I am prohibited from providing non-forensic content (such as cooking recipes, en
                 <p className="text-[11px]" style={{ color: t.textSub }}>• <strong>IT Act 2000 Sec 69</strong> (Traffic & ledger preservation)</p>
               </div>
 
+              {/* Quick History Snippet in Sidebar */}
+              {sessions.length > 0 && (
+                <div className="rounded-xl p-3 space-y-2" style={{ background: t.card2, border: `1px solid ${t.border}` }}>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] uppercase font-mono font-bold" style={{ color: t.textMuted }}>Recent Chat History</span>
+                    <button onClick={() => setShowHistoryDrawer(true)} className="text-[10px] font-bold text-[#0070f3] hover:underline">
+                      View All ({sessions.length})
+                    </button>
+                  </div>
+                  <div className="space-y-1">
+                    {sessions.slice(0, 3).map((s) => (
+                      <button
+                        key={s.id}
+                        onClick={() => handleLoadSession(s)}
+                        className="w-full text-left p-1.5 rounded-lg text-[11px] truncate transition-all hover:bg-black/5 dark:hover:bg-white/5 flex items-center justify-between"
+                        style={{ color: t.text }}
+                      >
+                        <span className="truncate pr-2 font-medium">{s.title}</span>
+                        <span className="text-[9px] font-mono text-cyan-500 flex-shrink-0">{formatTimeAgo(s.updatedAt)}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Registered Dockets Quick Switcher */}
               <div className="space-y-2">
                 <span className="text-[10px] uppercase font-mono font-bold" style={{ color: t.textMuted }}>
                   Available Registered Cases ({allCases.length})
                 </span>
                 <div className="space-y-1.5">
-                  {allCases.slice(0, 4).map((c) => (
+                  {allCases.slice(0, 3).map((c) => (
                     <button
                       key={c.id}
                       onClick={() => {
                         setSelectedCaseId(c.id);
-                        handleResetChat();
+                        if (messages.length > 0) saveCurrentSession(messages, selectedCaseId);
+                        setMessages([]);
+                        setCurrentSessionId(`session_${Date.now()}`);
                       }}
                       className="w-full p-2 rounded-xl text-left transition-all hover:bg-black/5 dark:hover:bg-white/5 flex items-center justify-between"
                       style={{ background: t.card2, border: `1px solid ${t.border}` }}
@@ -1057,7 +1258,7 @@ I am prohibited from providing non-forensic content (such as cooking recipes, en
               <button
                 onClick={() => handleSend()}
                 disabled={isStreaming || !input.trim()}
-                className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs disabled:opacity-40 transition-all active:scale-95 flex items-center gap-1.5 shadow-md"
+                className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs disabled:opacity-40 transition-all active:scale-95 flex items-center gap-1.5 shadow-md flex-shrink-0"
               >
                 <span>SEND</span>
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1070,6 +1271,164 @@ I am prohibited from providing non-forensic content (such as cooking recipes, en
         </div>
 
       </div>
+
+      {/* ── Slide-Over Chat History Drawer ── */}
+      {showHistoryDrawer && (
+        <div className="fixed inset-0 z-50 flex justify-end">
+          {/* Backdrop blur overlay */}
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+            onClick={() => setShowHistoryDrawer(false)}
+          />
+
+          {/* Drawer content */}
+          <div
+            className="relative w-full max-w-md h-full shadow-2xl flex flex-col z-10 border-l animate-slideLeft"
+            style={{ background: t.card, borderColor: t.border }}
+          >
+            {/* Drawer Header */}
+            <div className="p-4 border-b flex items-center justify-between" style={{ borderColor: t.border }}>
+              <div className="flex items-center gap-2">
+                <svg className="w-5 h-5 text-[#0070f3]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h3 className="text-[16px] font-bold" style={{ fontFamily: "'Rajdhani', sans-serif", color: t.text }}>
+                  Investigation Chat History
+                </h3>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-500/10 text-[#0070f3] font-bold">
+                  {sessions.length}
+                </span>
+              </div>
+
+              <button
+                onClick={() => setShowHistoryDrawer(false)}
+                className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/5 transition-all"
+                style={{ color: t.text }}
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Quick Action: Start New Chat */}
+            <div className="p-3 border-b" style={{ borderColor: t.border }}>
+              <button
+                onClick={handleStartNewChat}
+                className="w-full py-2 px-3 rounded-xl font-bold text-[12px] text-white bg-blue-600 hover:bg-blue-500 flex items-center justify-center gap-2 shadow transition-all active:scale-95"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+                </svg>
+                Start New Chat Session
+              </button>
+
+              {/* Search Filter */}
+              <div className="mt-2.5 flex items-center gap-2 px-3 py-1.5 rounded-xl text-[12px]"
+                   style={{ background: t.inputBg, border: `1px solid ${t.border}` }}>
+                <svg className="w-3.5 h-3.5" style={{ color: t.textMuted }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input
+                  type="text"
+                  value={historySearch}
+                  onChange={(e) => setHistorySearch(e.target.value)}
+                  placeholder="Search past queries or cases..."
+                  className="bg-transparent flex-1 outline-none text-[12px]"
+                  style={{ color: t.text }}
+                />
+                {historySearch && (
+                  <button onClick={() => setHistorySearch('')} className="text-[10px] font-bold text-gray-400">
+                    ✕
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Sessions List */}
+            <div className="flex-1 overflow-y-auto p-3 space-y-2">
+              {filteredSessions.length === 0 ? (
+                <div className="h-48 flex flex-col items-center justify-center text-center p-4">
+                  <svg className="w-10 h-10 mb-2 opacity-30" style={{ color: t.textMuted }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                  <p className="text-[13px] font-semibold" style={{ color: t.text }}>No Sessions Found</p>
+                  <p className="text-[11px] mt-1 max-w-[200px]" style={{ color: t.textMuted }}>
+                    {historySearch ? 'No chat sessions match your search.' : 'Previous investigative discussions and queries will appear here.'}
+                  </p>
+                </div>
+              ) : (
+                filteredSessions.map((s) => {
+                  const isCurrent = s.id === currentSessionId;
+                  const preview = s.messages[s.messages.length - 1]?.content?.slice(0, 75) || 'Empty session';
+                  return (
+                    <div
+                      key={s.id}
+                      onClick={() => handleLoadSession(s)}
+                      className={`p-3 rounded-2xl cursor-pointer transition-all border group relative ${
+                        isCurrent ? 'ring-2 ring-[#0070f3]' : 'hover:scale-[1.01]'
+                      }`}
+                      style={{
+                        background: isCurrent ? t.card2 : t.card,
+                        borderColor: isCurrent ? '#0070f3' : t.border,
+                      }}
+                    >
+                      <div className="flex items-start justify-between gap-2 mb-1">
+                        <h4 className="text-[12px] font-bold line-clamp-1 flex-1" style={{ color: t.text }}>
+                          {s.title}
+                        </h4>
+                        <button
+                          onClick={(e) => handleDeleteSession(e, s.id)}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-red-500/10 text-red-500"
+                          title="Delete Session"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
+
+                      <p className="text-[11px] line-clamp-2 mb-2 leading-relaxed" style={{ color: t.textMuted }}>
+                        {preview}
+                      </p>
+
+                      <div className="flex items-center justify-between text-[10px] font-mono" style={{ color: t.textMuted }}>
+                        <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase"
+                              style={{
+                                background: s.caseId !== 'GENERAL' ? 'rgba(239,68,68,0.1)' : 'rgba(0,112,243,0.1)',
+                                color: s.caseId !== 'GENERAL' ? '#ef4444' : '#0070f3',
+                              }}>
+                          {s.caseId !== 'GENERAL' ? s.caseId : '🌐 General'}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <span>{s.messages.length} msgs</span>
+                          <span>·</span>
+                          <span>{formatTimeAgo(s.updatedAt)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Drawer Footer: Clear History */}
+            {sessions.length > 0 && (
+              <div className="p-3 border-t flex items-center justify-between text-[11px]" style={{ borderColor: t.border }}>
+                <span style={{ color: t.textMuted }}>{sessions.length} saved sessions</span>
+                <button
+                  onClick={handleClearAllHistory}
+                  className="font-bold text-red-500 hover:text-red-600 transition-colors"
+                >
+                  Clear All History
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
