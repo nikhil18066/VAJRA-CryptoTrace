@@ -18,6 +18,46 @@ interface Message {
   isStreaming?: boolean;
 }
 
+// Check if a query is completely off-topic (e.g., cooking recipes, movies, entertainment, trivia)
+export function isOffTopicQuery(question: string): boolean {
+  const q = question.toLowerCase().trim();
+
+  // Whitelist: Allow standard greetings
+  const isGreeting = /^(hi|hello|hey|namaste|good\s*(morning|afternoon|evening)|greetings|sup|yo|howdy|who\s*are\s*you|what\s*can\s*you\s*do|help)(\s+.*)?$/i.test(q);
+  if (isGreeting) return false;
+
+  // Whitelist: If query contains explicit crypto/forensic/legal keywords or wallet/hash patterns, it's ON-TOPIC
+  const forensicKeywords = [
+    'crypto', 'blockchain', 'wallet', 'address', 'transaction', 'tx', 'hash', 'bitcoin', 'btc', 'ethereum', 'eth',
+    'usdt', 'tron', 'trx', 'solana', 'sol', 'bsc', 'binance', 'bybit', 'okx', 'wazirx', 'coindcx', 'coinbase', 'kraken',
+    'mixer', 'tornado', 'railgun', 'wasabi', 'peel', 'layering', 'structuring', 'mule', 'dna', 'risk', 'crpc', 'bnss',
+    'pmla', 'it act', 'notice', 'subpoena', 'freeze', 'kyc', 'fir', 'cyber', 'police', 'investigation', 'evidence',
+    'scam', 'fraud', 'phishing', 'drainer', 'bridge', 'stargate', 'thorchain', 'hop', 'graph', 'cluster', 'counterparty',
+    'ledger', 'docket', 'case', 'token', 'erc20', 'trc20', 'smart contract', 'dex', 'cex', 'fiat', 'upi', 'bank',
+    'off-ramp', 'on-ramp', 'hawala', 'smurfing', 'velocity', 'heuristics', 'forensic', 'law enforcement', 'ed', 'cbi', 'fiu',
+    'dossier', 'sanction', 'ofac', 'interpol', 'seizure', 'recovery', 'victim', 'suspect', 'transit', 'routing'
+  ];
+
+  const hasForensicKeyword = forensicKeywords.some((kw) => q.includes(kw));
+  if (hasForensicKeyword) return false;
+
+  // Check if it contains an address/hash pattern (e.g., 0x..., Tron T..., BTC bc1/1/3)
+  if (/0x[a-fA-F0-9]{8,}/.test(q) || /T[a-zA-Z0-9]{20,}/.test(q) || /bc1[a-zA-Z0-9]{15,}/.test(q) || /[a-fA-F0-9]{40,}/.test(q)) {
+    return false;
+  }
+
+  // Blacklist patterns: Food, Cooking, Recipes, Entertainment, Sports, General Chatbot Trivia, Creative writing
+  const offTopicPatterns = [
+    /\b(recipe|recipes|chocolate|maggi|noodle|noodles|cook|cooking|bake|baking|dish|dishes|kitchen|ingredient|ingredients|curry|pizza|burger|pasta|cake|biscuit|tea|coffee|snack|soup|dessert|lunch|dinner|breakfast|paneer|biryani|roti|bread|sauce|flour|sugar|salt|oil|spices|food|yummy|delicious|tasty|eat|eating|meal|flavor|taste)\b/i,
+    /\b(movie|movies|cinema|film|films|actor|actress|bollywood|hollywood|song|songs|sing|singing|singer|lyrics|guitar|piano|cricket|ipl|football|fifa|messi|ronaldo|virat|dhoni|sports|game|gaming|videogame|minecraft|gta|fortnite|anime|manga|netflix|spotify|marvel|dc|superhero|batman|superman)\b/i,
+    /\b(joke|jokes|tell me a joke|funny|riddle|poem|poetry|love letter|story|fairytale|horoscope|astrology|zodiac|tarot|relationship advice|dating)\b/i,
+    /\b(weather|temperature|forecast|capital of|who is the president|who is prime minister|essay on|homework|math problem|solve for x|chemistry|biology|physics|weight loss|gym workout|fitness)\b/i,
+    /\b(hotel|flight|travel guide|vacation|tourism|shopping|fashion|clothing|dress|makeup|cosmetics)\b/i,
+  ];
+
+  return offTopicPatterns.some((pattern) => pattern.test(q));
+}
+
 function getActiveCaseContext(caseId: string) {
   if (!caseId || caseId === 'GENERAL') {
     return {
@@ -104,8 +144,16 @@ function getActiveCaseContext(caseId: string) {
 function buildSystemPrompt(caseId: string): string {
   const c = getActiveCaseContext(caseId);
 
+  const guardrailPrefix = `*** CRITICAL SYSTEM GUARDRAIL & STRICT DOMAIN BOUNDARY ***
+You are EXCLUSIVELY VAJRA AI, an elite cryptocurrency forensic and crypto-crime intelligence copilot built for Indian Law Enforcement (State Cyber Police, ED, FIU-IND, CBI) and Web3 fraud investigators.
+YOU MUST NEVER ANSWER QUESTIONS ABOUT FOOD RECIPES (SUCH AS HOW TO MAKE CHOCOLATE, MAGGI, COOKING, ETC.), MOVIES, ENTERTAINMENT, SPORTS, JOKES, GAMING, HOMEWORK, OR GENERAL NON-FORENSIC TOPICS.
+If the user asks ANY off-topic query, you MUST IMMEDIATELY REFUSE with:
+"🛡️ Out of Scope: As VAJRA Forensic AI, I am strictly dedicated to cryptocurrency forensics, blockchain transaction tracing, 6D Risk DNA profiling, and law enforcement statutory compliance (CrPC/BNSS/PMLA/IT Act). I cannot provide recipes, cooking instructions, or non-forensic content. Please provide a wallet address, transaction hash, or blockchain investigative query."
+***********************************************************`;
+
   if (c.isGeneral) {
-    return `You are VAJRA AI, an elite blockchain forensic investigator and copilot assisting Indian Law Enforcement (State Cyber Police, ED, FIU-IND, CBI) and Web3 fraud analysts.
+    return `${guardrailPrefix}
+
 You are currently operating in **🌐 GENERAL FORENSIC MODE** (no specific case docket pinned).
 
 **Your Core Forensic Capabilities:**
@@ -117,7 +165,7 @@ You are currently operating in **🌐 GENERAL FORENSIC MODE** (no specific case 
 
 **CONVERSATIONAL RULES & GUIDELINES:**
 - If the user sends a greeting (e.g., "hi", "hello", "namaste", "good morning", "hey"), respond warmly and professionally as VAJRA AI Copilot, briefly state what you can do, and ask how you can assist their investigation today.
-- When asked general questions (e.g., "explain peel chains", "what is section 91 crpc", "how to trace tornado cash"), answer directly, concisely, and authoritatively with clear headings and bullet points.
+- When asked general forensic questions (e.g., "explain peel chains", "what is section 91 crpc", "how to trace tornado cash"), answer directly, concisely, and authoritatively with clear headings and bullet points.
 - NEVER invent or dump unsolicited fake case numbers or fake wallet addresses when answering general questions.
 - Maintain an authoritative, professional law-enforcement tone.`;
   }
@@ -136,7 +184,9 @@ You are currently operating in **🌐 GENERAL FORENSIC MODE** (no specific case 
   const factorsInfo = `**Triggered Fraud Indicators:**\n${c.factors.map((f) => `• ${f}`).join('\n')}`;
   const vaspInfo = c.vasps.map((v) => `${v.name} (${v.confidence}% confidence, ${v.category})`).join(', ');
 
-  return `You are VAJRA AI, an elite blockchain forensic investigator and copilot assisting Indian Law Enforcement (State Cyber Police, ED, FIU-IND, CBI). You are currently providing investigative intelligence for active docket **${caseId}**.
+  return `${guardrailPrefix}
+
+You are currently providing investigative intelligence for active docket **${caseId}**.
 
 **LIVE 21-Pillar Case Intelligence Briefing:**
 ${walletInfo}${dnaVector}
@@ -149,7 +199,7 @@ ${factorsInfo}
 **CONVERSATIONAL RULES & OPERATIONAL GUIDELINES:**
 1. **GREETINGS RULE**: If the user sends a greeting (e.g. "hi", "hello", "namaste", "good morning", "hey", "who are you"), reply politely and concisely, acknowledge that docket **${caseId}** (\`${c.wallet.slice(0, 8)}…\`) is loaded, and ask how you can assist them with this docket or general forensics. **DO NOT dump raw case statistics or full dossiers on a simple greeting.**
 2. **TARGETED INQUIRIES**: Only output detailed case statistics, addresses, risk DNA vectors, or legal drafts when the user asks about the case, wallet, transactions, notices, risk, or investigation strategy.
-3. **GENERAL QUESTIONS**: If the user asks a general conceptual question (e.g. "what is Section 91 CrPC?", "how do mixers work?", "what is a peel chain?"), answer the concept clearly and accurately without forcing case numbers unless relevant as a quick example.
+3. **GENERAL FORENSIC QUESTIONS**: If the user asks a general conceptual question (e.g. "what is Section 91 CrPC?", "how do mixers work?", "what is a peel chain?"), answer the concept clearly and accurately without forcing case numbers unless relevant as a quick example.
 4. **STATUTORY ACCURACY**: Recommend precise statutory provisions: Section 91 CrPC / Section 94 BNSS 2023, IT Act 2000 (Section 66C, 66D, 69), and PMLA 2002 (Sec 3 & Sec 17 asset freezing).
 5. Maintain an authoritative, professional law-enforcement tone.`;
 }
@@ -162,6 +212,22 @@ function generateLocalResponse(question: string, caseId: string): string {
   const addrShort = c.wallet ? c.wallet.slice(0, 8) + '…' + c.wallet.slice(-6) : '';
   const primaryVasp = c.vasps[0]?.name || (c.chain === 'Tron' ? 'Binance Tron' : c.chain === 'Bitcoin' ? 'Cold Vault' : c.chain === 'Solana' ? 'Raydium DEX' : 'Binance');
   const primaryVaspAddr = c.vasps[0]?.address || c.wallet || '0x...';
+
+  // 0. Strict Off-Topic Guardrail Refusal
+  if (isOffTopicQuery(question)) {
+    return `### 🛡️ Out of Scope — Forensic Domain Guardrail
+
+Officer, I am **VAJRA Forensic AI**, an intelligence system strictly configured for **cryptocurrency forensics, blockchain transaction tracing, 6D Risk DNA profiling, and law enforcement statutory compliance** (Section 91 CrPC / Section 94 BNSS 2023).
+
+I am prohibited from providing non-forensic content (such as cooking recipes, entertainment, sports, or general trivia).
+
+**Investigative Queries You Can Ask Me:**
+• 🔍 **Wallet / Transaction Tracing:** Paste any Ethereum, Tron (TRC-20), Bitcoin, or Solana address to trace funds.
+• 🧬 **6D Risk DNA Vector:** Deconstruct AML structuring, mixer exposure, and velocity genetics.
+• 📜 **Statutory Preservation Notices:** Draft formal preservation and freeze notices under Section 91 CrPC / Section 94 BNSS 2023.
+• 🏦 **VASP Subpoenas:** Analyze exchange deposit sweeps for Binance, OKX, Bybit, or WazirX.
+• 🌪️ **Mixer De-Anonymization:** Evaluate time-correlation and amount-matching heuristics for Tornado Cash / Railgun.`;
+  }
 
   // 1. Natural Greeting & Capability Inquiry
   const isGreeting = /^(hi|hello|hey|namaste|good\s*(morning|afternoon|evening)|greetings|sup|yo|howdy|who\s*are\s*you|what\s*can\s*you\s*do|help)(\s+.*)?$/i.test(q);
@@ -572,6 +638,30 @@ export default function AIInvestigator({ caseId: initialCaseId, onBack }: AIInve
     setMessages((prev) => [...prev, userMsg, aiPlaceholder]);
     if (!customText) setInput('');
     setIsStreaming(true);
+
+    // Instant Guardrail Check for Off-Topic Queries (Recipes, Cooking, Entertainment, Trivia)
+    if (isOffTopicQuery(text)) {
+      const refusal = `### 🛡️ Out of Scope — Forensic Domain Guardrail
+
+Officer, I am **VAJRA Forensic AI**, an intelligence system strictly configured for **cryptocurrency forensics, blockchain transaction tracing, 6D Risk DNA profiling, and law enforcement statutory compliance** (Section 91 CrPC / Section 94 BNSS 2023).
+
+I am prohibited from providing non-forensic content (such as cooking recipes, entertainment, sports, or general trivia).
+
+**Investigative Queries You Can Ask Me:**
+• 🔍 **Wallet / Transaction Tracing:** Paste any Ethereum, Tron (TRC-20), Bitcoin, or Solana address to trace funds.
+• 🧬 **6D Risk DNA Vector:** Deconstruct AML structuring, mixer exposure, and velocity genetics.
+• 📜 **Statutory Preservation Notices:** Draft formal preservation and freeze notices under Section 91 CrPC / Section 94 BNSS 2023.
+• 🏦 **VASP Subpoenas:** Analyze exchange deposit sweeps for Binance, OKX, Bybit, or WazirX.
+• 🌪️ **Mixer De-Anonymization:** Evaluate time-correlation and amount-matching heuristics for Tornado Cash / Railgun.`;
+
+      setTimeout(() => {
+        setMessages((prev) =>
+          prev.map((m) => (m.id === aiMsgId ? { ...m, content: refusal, isStreaming: false } : m))
+        );
+        setIsStreaming(false);
+      }, 150);
+      return;
+    }
 
     const chatHistory: ChatMessage[] = [
       { role: 'system', content: buildSystemPrompt(selectedCaseId) },
