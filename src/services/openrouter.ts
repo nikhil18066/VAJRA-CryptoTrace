@@ -2,14 +2,14 @@
 const BASE = (import.meta.env.VITE_OPENROUTER_BASE_URL as string) || 'https://openrouter.ai/api/v1';
 const KEY  = (import.meta.env.VITE_OPENROUTER_API_KEY as string) || '';
 
-// High-speed, high-availability free models prioritized by latency and token completion capacity
+// High-speed, high-availability free models prioritized by direct response quality without safety wrapper prefixes
 const MODELS = [
-  'openrouter/free',
-  'nvidia/nemotron-3-ultra-550b-a55b:free',
-  'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
   'stealth/space-bunny-alpha',
-  'nvidia/nemotron-3.5-lightning:free',
-  'nvidia/nemotron-3-super-120b-a12b:free',
+  'dots-studio/dots-3-note-preview:free',
+  'inclusionai/ling-3.0-flash-sante:free',
+  'liquid/lfm-2.5-2.6b:free',
+  'cohere/north-mini-code:free',
+  'openrouter/free',
 ] as const;
 
 let modelCursor = 0;
@@ -22,36 +22,55 @@ export function nextModel() {
 
 export type ChatMessage = { role: 'user' | 'assistant' | 'system'; content: string };
 
-// Strip <think>...</think> blocks that reasoning models prepend
-function stripThinking(text: string): string {
-  return text.replace(/<think>[\s\S]*?<\/think>/g, '').trimStart();
+// Comprehensive cleaner for raw LLM outputs (strips <think> blocks, unclosed thinking traces, and moderation safety headers)
+export function cleanAIResponse(text: string): string {
+  if (!text) return '';
+  let out = text;
+  
+  // 1. Strip explicit <think>...</think> blocks
+  out = out.replace(/<think>[\s\S]*?<\/think>/gi, '');
+  
+  // 2. Strip raw "Here's a thinking process: ... " or "Thinking Process: ..." before main response
+  out = out.replace(/^(?:Here's a thinking process|Thinking Process|Thinking Log)[\s\S]*?(?=\n\n(?:[#\*\-A-Za-z0-9]|$))/i, '');
+  
+  // 3. Strip "User Safety: safe", "Response Safety: safe", "Safety Assessment: ...", etc.
+  out = out.replace(/^\s*(?:User Safety|Response Safety|Content Safety|Safety Assessment|Safety):\s*(?:safe|unsafe|pass|fail|low|medium|high|unknown|n\/a)[^\r\n]*\r?\n?/gmi, '');
+  out = out.replace(/^\s*(?:User Safety|Response Safety|Content Safety|Safety Assessment|Safety):\s*(?:safe|unsafe|pass|fail|low|medium|high|unknown|n\/a)[^\r\n]*$/gmi, '');
+  
+  // 4. Strip leftover blank lines at the start/end
+  return out.trim();
 }
 
-// Stateful streaming filter for partial <think> blocks split across SSE chunks
-function makeThinkFilter() {
-  let inside = false;
+// Stateful streaming filter for partial <think> blocks and safety headers split across SSE chunks
+function makeStreamFilter() {
+  let insideThink = false;
   let buf = '';
 
   return function filter(raw: string): string {
-    let out = '';
     let s = buf + raw;
     buf = '';
 
+    // Handle think block start/end
     while (s.length > 0) {
-      if (inside) {
+      if (insideThink) {
         const end = s.indexOf('</think>');
-        if (end === -1) { buf = s; break; }
+        if (end === -1) { buf = s; return ''; }
         s = s.slice(end + 8);
-        inside = false;
+        insideThink = false;
       } else {
         const start = s.indexOf('<think>');
-        if (start === -1) { out += s; break; }
-        out += s.slice(0, start);
+        if (start === -1) { break; }
+        const before = s.slice(0, start);
         s = s.slice(start + 7);
-        inside = true;
+        insideThink = true;
+        s = before; // Process content before <think>
       }
     }
-    return out;
+
+    // Filter safety evaluation lines
+    s = s.replace(/^\s*(?:User Safety|Response Safety|Content Safety|Safety Assessment):\s*(?:safe|unsafe|pass|fail|low|medium|high)[^\r\n]*\r?\n?/gmi, '');
+
+    return s;
   };
 }
 
@@ -67,7 +86,7 @@ function getHeaders() {
   return headers;
 }
 
-// Non-streaming completion for messages array with high max_tokens to prevent mid-response cutoffs
+// Non-streaming completion for messages array with clean output verification
 export async function completeChat(messages: ChatMessage[], attempt = 0): Promise<string> {
   const model = MODELS[attempt % MODELS.length];
   try {
@@ -96,8 +115,15 @@ export async function completeChat(messages: ChatMessage[], attempt = 0): Promis
     }
 
     const data = await res.json();
-    const content = data.choices?.[0]?.message?.content ?? '';
-    return stripThinking(content);
+    const rawContent = data.choices?.[0]?.message?.content ?? '';
+    const cleaned = cleanAIResponse(rawContent);
+
+    // If cleaned response is empty or invalid safety text, try next model
+    if ((!cleaned || cleaned.length < 15) && attempt < MODELS.length - 1) {
+      return completeChat(messages, attempt + 1);
+    }
+
+    return cleaned;
   } catch (err) {
     if (attempt < MODELS.length - 1) {
       return completeChat(messages, attempt + 1);
@@ -114,7 +140,7 @@ export async function streamChat(
   attempt = 0,
 ): Promise<void> {
   const model = MODELS[attempt % MODELS.length];
-  const filterChunk = makeThinkFilter();
+  const filterChunk = makeStreamFilter();
 
   try {
     const controller = new AbortController();
@@ -140,7 +166,7 @@ export async function streamChat(
       }
       try {
         const fullReply = await completeChat(messages, 0);
-        if (fullReply) {
+        if (fullReply && fullReply.length >= 15) {
           onChunk(fullReply);
           onDone();
           return;
@@ -154,7 +180,7 @@ export async function streamChat(
     const reader  = res.body.getReader();
     const decoder = new TextDecoder();
     let buffer    = '';
-    let receivedAnyChunk = false;
+    let accumulated = '';
 
     while (true) {
       const { done, value } = await reader.read();
@@ -167,14 +193,25 @@ export async function streamChat(
       for (const line of lines) {
         if (!line.startsWith('data: ')) continue;
         const raw = line.slice(6).trim();
-        if (raw === '[DONE]') { onDone(); return; }
+        if (raw === '[DONE]') {
+          const cleaned = cleanAIResponse(accumulated);
+          if (cleaned.length >= 15) {
+            onDone();
+            return;
+          } else if (attempt < MODELS.length - 1) {
+            return streamChat(messages, onChunk, onDone, onError, attempt + 1);
+          } else {
+            onDone();
+            return;
+          }
+        }
         try {
           const parsed = JSON.parse(raw);
           const chunk  = parsed.choices?.[0]?.delta?.content;
           if (chunk) {
             const filtered = filterChunk(chunk);
             if (filtered) {
-              receivedAnyChunk = true;
+              accumulated += filtered;
               onChunk(filtered);
             }
           }
@@ -184,7 +221,8 @@ export async function streamChat(
       }
     }
 
-    if (!receivedAnyChunk && attempt < MODELS.length - 1) {
+    const cleaned = cleanAIResponse(accumulated);
+    if ((!cleaned || cleaned.length < 15) && attempt < MODELS.length - 1) {
       return streamChat(messages, onChunk, onDone, onError, attempt + 1);
     }
 
@@ -195,7 +233,7 @@ export async function streamChat(
     }
     try {
       const fullReply = await completeChat(messages, 0);
-      if (fullReply) {
+      if (fullReply && fullReply.length >= 15) {
         onChunk(fullReply);
         onDone();
         return;

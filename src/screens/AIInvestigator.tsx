@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { streamChat } from '../services/openrouter';
+import { streamChat, cleanAIResponse } from '../services/openrouter';
 import type { ChatMessage } from '../services/openrouter';
 import { analysisStore } from '../store/analysisStore';
 import { caseStore } from '../store/caseStore';
@@ -776,7 +776,8 @@ I am prohibited from providing non-forensic content (such as cooking recipes, en
         setMessages((prev) => {
           const finalMsgs = prev.map((m) => {
             if (m.id === aiMsgId) {
-              const content = m.content.trim() ? m.content : generateLocalResponse(text, selectedCaseId);
+              const cleaned = cleanAIResponse(m.content || fullAiResponse);
+              const content = (cleaned && cleaned.length >= 20) ? cleaned : generateLocalResponse(text, selectedCaseId);
               return { ...m, content, isStreaming: false };
             }
             return m;
